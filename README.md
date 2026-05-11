@@ -43,18 +43,40 @@ porting to RMX3171 — same SoC, modern Android 16 / 6.6 substrate.
 | Stage | State |
 |---|---|
 | Linux 6.6.50 base | ✅ builds clean (clang-14 + LLD-14) |
-| `Image.gz-dtb` | ✅ produced (12 MB) |
-| `mt6768-rmx3171.dtb` | ✅ produced (160 KB) |
+| `Image.gz` (uncompressed-then-gzip ARM64) | ✅ ~12 MB |
+| `mt6768-rmx3171.dtb` with RMX3171 specifics | ✅ ~191 KB (pinctrl + battery merged) |
+| **RMX3171 pinctrl dtsi** | ✅ extracted from stock A11 boot dtb (95 groups, raw MTK pinmux) |
+| **RMX3171 battery profile dtsi** | ✅ extracted from stock A11 boot dtb (4 batteries × 5 temps, gm30 fuelgauge curves) |
 | KernelSU v3.2.4 | ✅ integrated (CONFIG_KSU=y) |
-| 118 generic Linux modules | ✅ built (.ko) |
-| MTK BSP modules (camera, GPU, charger, etc.) | ⚠️ in-progress — requires Samsung Kleaf/Bazel build (full Android prebuilts) |
-| Pinctrl dtsi for RMX3171 | ⚠️ in-progress (Samsung A05M values applied as placeholder) |
+| ~118 generic Linux modules | ✅ built (.ko) |
+| MTK BSP modules (camera, GPU, charger, sensor hub, connsys, etc.) | ⚠️ in-progress — requires Samsung Kleaf/Bazel build (~10 GB Android prebuilts) |
+| LCM panel binding | ⚠️ stock loader auto-selects from CUSTOM_KERNEL_LCM list at runtime |
 | Real device boot test | ❌ not yet |
 
 This base is **not yet a flashable Android 16 production kernel for daily
 use on RMX3171**. It is the build infrastructure + scaffolding for one.
 Full MTK BSP integration requires Samsung's Kleaf/Bazel build with
 Android prebuilts (~10 GB download). See [BUILD.md](docs/BUILD.md).
+
+## Latest build artifacts (2026-05-12)
+
+Built clean from Samsung A055F kernel-6.6.50 base + AETHER RMX3171 overlays.
+
+| File | Size | SHA-256 |
+|---|---|---|
+| `out/arch/arm64/boot/Image` (raw ARM64 ELF) | 27.06 MB | (in vmlinux-debug) |
+| `out/arch/arm64/boot/Image.gz` | 11.98 MB | |
+| `out/arch/arm64/boot/Image.gz-dtb` | 12.17 MB | `c07493dac1b72...` |
+| `out/arch/arm64/boot/dts/mediatek/mt6768-rmx3171.dtb` | 191 KB | `c0b68e915d28e...` |
+| `AnyKernel3/AETHER_RMX3171_6.6_A16-20260512.zip` (flashable) | **57.16 MB** | `5ebb911b17d10...` |
+| `.ko` modules built | 118 files | |
+
+DTB now embeds RMX3171-specific data extracted from stock A11 boot dtb:
+- 95 pinctrl pin groups (raw MTK pinmux from `realme_rmx3171_dump-*/bootdts`)
+- Battery fuelgauge profile: 4 batteries × 5 temperatures × 100 SOC points
+- Goodix fingerprint compatible binding
+- Charger stock values (2.05 A AC, 3.2 A input, 4.35 V CV, full JEITA table)
+- soundcard `mt6768mt6358` + sia81xx smart PA
 
 ## Repository layout
 

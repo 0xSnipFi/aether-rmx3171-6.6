@@ -14,13 +14,23 @@
 /dts-v1/;
 
 #include "mt6768.dts"
-/* Touch + msdc + camera dtsi pulled in only when their pinctrl labels exist
- * in our tree (Samsung defines them in S96818AA1.dts). For sanity build we
- * keep just the SoC dts. Once the production pinctrl block is written for
- * RMX3171 (aether-rmx3171/dts/cust_mt6768_rmx3171_pinctrl.dtsi), re-include:
- *
+
+/*
+ * RMX3171-specific overlays — extracted from stock A11 boot dtb.
+ * Sources documented in docs/01_hardware_truth.md.
+ */
+#include "cust_mt6768_rmx3171_pinctrl.dtsi"   /* 95 pin groups, raw MTK pinmux */
+#include "rmx3171_bat_profile.dtsi"           /* 4-battery × 5-temp gm30 profile */
+
+/*
+ * Samsung MTK customer dtsi (board-shared touch/msdc/camera/charger).
+ * These reference GPIO function macros that exist in Samsung's tree;
+ * include them after the RMX3171 pinctrl overrides above so RMX3171 pin
+ * settings win precedence on shared labels.
+ */
+#include "cust_mt6768_msdc.dtsi"
+/* TODO: re-enable after pinctrl label cross-check
  *   #include "cust_mt6768_touch_720x1600.dtsi"
- *   #include "cust_mt6768_msdc.dtsi"
  *   #include "cust_mt6768_camera.dtsi"
  *   #include "g85_ref_charger.dtsi"
  */
