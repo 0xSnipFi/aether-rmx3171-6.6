@@ -1,0 +1,54 @@
+# Build output
+out/
+build/out/
+
+# Kernel build artifacts
+*.ko
+*.mod
+*.mod.c
+*.o
+*.o.cmd
+*.symvers
+*.order
+.tmp_versions/
+.config
+.config.old
+.kernel-release
+
+# AnyKernel build output
+AnyKernel3/*.zip
+AnyKernel3/Image*
+
+# Build logs
+*.log
+build*.exit
+
+# Toolchain
+toolchain/
+prebuilts/
+
+# Large staged sources (use scripts/sync_samsung_base.sh to re-stage)
+kernel-6.6/
+device-modules/
+vendor-modules/
+KernelSU/
+
+# Upstream Linux extract (used for header restoration only)
+linux-6.6.50/
+linux-6.6.50.tar.xz
+
+# Stock device dumps (proprietary)
+super_extracted/
+*.img
+vendor/realme/RMX3171/proprietary/
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

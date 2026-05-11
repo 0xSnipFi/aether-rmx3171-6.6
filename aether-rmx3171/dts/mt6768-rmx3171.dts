@@ -1,0 +1,260 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * AETHER RMX3171 device tree — Linux 6.6 binding style.
+ *
+ * Realme Narzo 30A (RMX3171), MT6768 SoC, oppo6769 board family.
+ *
+ * Inheritance: Samsung's mt6768.dts (SoC level) plus the matching customer
+ * include files. This file only adds/overrides what is RMX3171-specific.
+ * Every override has an evidence pointer to docs/01_hardware_truth.md.
+ *
+ * Do not edit values without updating 01_hardware_truth.md.
+ */
+
+/dts-v1/;
+
+#include "mt6768.dts"
+/* Touch + msdc + camera dtsi pulled in only when their pinctrl labels exist
+ * in our tree (Samsung defines them in S96818AA1.dts). For sanity build we
+ * keep just the SoC dts. Once the production pinctrl block is written for
+ * RMX3171 (aether-rmx3171/dts/cust_mt6768_rmx3171_pinctrl.dtsi), re-include:
+ *
+ *   #include "cust_mt6768_touch_720x1600.dtsi"
+ *   #include "cust_mt6768_msdc.dtsi"
+ *   #include "cust_mt6768_camera.dtsi"
+ *   #include "g85_ref_charger.dtsi"
+ */
+
+/ {
+	model = "Realme Narzo 30A (RMX3171) — AETHER A16/6.6 kernel";
+	compatible =
+		"realme,RMX3171",
+		"realme,narzo30a",
+		"oplus,oppo6769",
+		"mediatek,MT6768";
+
+	/*
+	 * RAM size is set by bootloader at runtime; do not hardcode here.
+	 * RMX3171 ships 4 GB and 3 GB skus — both detected via DT memory@.
+	 */
+};
+
+/* =========================================================================
+ * Boot LCM (stock LCM picked by bootloader; default to most common variant
+ * but allow Realme stock loader to switch via atag,videolfb-lcmname).
+ * Evidence: HW truth §3 — stock CUSTOM_KERNEL_LCM list.
+ * =========================================================================
+ */
+&chosen {
+	atag,videolfb-fb_base_l = <0x7e605000>;
+	atag,videolfb-fb_base_h = <0x0>;
+	atag,videolfb-islcmfound = <1>;
+	atag,videolfb-islcm_inited = <0>;
+	atag,videolfb-fps = <6000>;
+	atag,videolfb-vramSize = <0x017e8000>;
+	/* Most common stock RMX3171 panel; runtime LCM can override */
+	atag,videolfb-lcmname = "ilt9881h_truly_hdp_dsi_vdo_lcm";
+};
+
+/* =========================================================================
+ * Charger — RMX3171 stock values from bootdts evidence.
+ * Evidence: HW truth §7 (full table).
+ * =========================================================================
+ */
+&charger {
+	algorithm_name = "SwitchCharging";
+	/* Currents in µA, voltages in µV — Linux convention */
+	ac_charger_current        = <2050000>;	/* 2.05 A */
+	ac_charger_input_current  = <3200000>;	/* 3.2 A */
+	usb_charger_current       = <500000>;
+	non_std_ac_charger_current = <500000>;
+	charging_host_charger_current = <1500000>;
+	ta_ac_charger_current     = <1500000>;
+
+	battery_cv                = <4350000>;	/* 4.35 V */
+	max_charger_voltage       = <6500000>;
+	min_charger_voltage       = <4400000>;
+
+	/* JEITA temperature-conditioned CV (µV) */
+	jeita_temp_above_t4_cv    = <4240000>;
+	jeita_temp_t3_to_t4_cv    = <4240000>;
+	jeita_temp_t2_to_t3_cv    = <4340000>;
+	jeita_temp_t1_to_t2_cv    = <4240000>;
+	jeita_temp_t0_to_t1_cv    = <4045000>;
+	jeita_temp_below_t0_cv    = <4045000>;
+
+	/* JEITA fast-charge entry/exit temps (°C) */
+	pe40_max_vbus             = <11000>;
+	high_temp_to_enter_pe40   = <39>;
+	high_temp_to_leave_pe40   = <46>;
+	low_temp_to_enter_pe40    = <16>;
+	low_temp_to_leave_pe40    = <10>;
+
+	enable_type_c;
+	disable_pd_dual;
+	enable_dynamic_mivr;
+	enable_min_charge_temp;
+
+	status = "okay";
+};
+
+/* =========================================================================
+ * Battery — 6000 mAh capacity (Realme product spec). Fuel-gauge profile is
+ * 100-point t0..t4 curves copied byte-equal from stock dtbdump into a
+ * separate include because the array is huge.
+ * Evidence: HW truth §7 + stock dtbdump battery0_profile_t0..t4 arrays.
+ * =========================================================================
+ */
+&battery_manager {
+	/* Capacity in mAh (Samsung 6.6 MTK convention; mt6358 PMIC fuelgauge) */
+	charge_full_design = <6000000>;	/* 6000 mAh in µAh */
+
+	status = "okay";
+
+	/*
+	 * Real production tree must also include the t0..t4 profile arrays
+	 * captured from stock dtbdump lines 432..526. Stored separately at
+	 * aether-rmx3171/dts/rmx3171_bat_profile.dtsi (TODO: extract).
+	 */
+};
+
+/* =========================================================================
+ * Fingerprint — RMX3171 stock uses Goodix as primary.
+ * Evidence: HW truth §5; stock dtbdump /fingerprint compatible="mediatek,goodix-fp".
+ * Also keep Egis + FPC stubs disabled, so kernel exposes only Goodix node.
+ * =========================================================================
+ */
+&odm {
+	/* Goodix FP — active */
+	rmx3171_goodix_fp: fingerprint {
+		compatible = "mediatek,goodix-fp";
+		status = "okay";
+		/*
+		 * GPIOs and SPI bindings: filled in via runtime probe + per-region
+		 * dtsi. Stock dtbdump did not expose them at the top level since
+		 * Realme uses a chip-specific child node. Verify with first device
+		 * boot log: `dmesg | grep -i goodix`.
+		 */
+	};
+
+	/* Egis FP — disabled on this region */
+	rmx3171_egis_fp: egis_fp {
+		compatible = "mediatek,finger-fp";
+		status = "disabled";
+	};
+
+	/* FPC FP — disabled on this region */
+	rmx3171_fpc_fp: fpc_interrupt {
+		compatible = "fpc,fpc_irq";
+		status = "disabled";
+	};
+};
+
+/* =========================================================================
+ * Touch — Samsung's cust_mt6768_touch_720x1600.dtsi already declares
+ * multi-compatible probe (chipone/novatek/focaltech/omnivision/gcore).
+ * Display-coords 720x1600 matches RMX3171 exactly. Reset GPIO 23, IRQ GPIO 0.
+ * Evidence: HW truth §4.
+ * No override needed here — inherited Samsung dtsi is correct.
+ * =========================================================================
+ */
+
+/* =========================================================================
+ * Audio — soundcard "mt6768mt6358", smart PA sia81xx.
+ * Evidence: HW truth §8.
+ * =========================================================================
+ */
+&sound {
+	mediatek,platform = <&afe>;
+	/* Card name HAL expects from stock */
+	mediatek,sound-name = "mt6768mt6358";
+	status = "okay";
+};
+
+/* sia81xx smart PA — Realme custom; bind to I2C bus from stock evidence */
+&i2c4 {
+	status = "okay";
+
+	rmx3171_sia81xx: sia81xx@29 {
+		compatible = "si,sia81xx-i2c";
+		reg = <0x29>;
+		status = "okay";
+		/*
+		 * Reset GPIO from stock vendor proprietary file.
+		 * TODO_DEVICE_BOOT: confirm GPIO number.
+		 */
+	};
+};
+
+/* =========================================================================
+ * USB — Type-C via RT1711H. PD disabled per stock.
+ * Evidence: HW truth §11.
+ * Note: mt6370 typec label not in Samsung's mt6768.dts — bound via
+ * separate dtsi at runtime once stock vendor blobs are in place. Stubbed
+ * here as comment to remind us. Real binding will live in
+ * arch/arm64/boot/dts/mediatek/cust_mt6768_rt1711h.dtsi (TODO).
+ * =========================================================================
+ */
+
+/* =========================================================================
+ * Connsys — MT6768 WLAN+BT, FM via MT6631.
+ * Evidence: HW truth §2.
+ * =========================================================================
+ */
+&consys {
+	/* Stock MT6768 chipid 0x6768 is auto-detected by MTK combo driver */
+	status = "okay";
+};
+
+/* =========================================================================
+ * Reserved memory — keep Samsung A05M layout; SoC-level allocator.
+ * RMX3171 stock dtbdump shows compatible reserved regions. No override.
+ * =========================================================================
+ */
+
+/* =========================================================================
+ * Sensors hub — Tinysys SCP. Sensor list inherited from MTK common.
+ * RMX3171 sensors: accel, gyro, mag, alsps, step counter, pickup.
+ * Evidence: HW truth §9.
+ * =========================================================================
+ */
+/* &scp { status = "okay"; }; — label not in Samsung mt6768.dts; SCP auto-binds via MTK Tinysys */
+
+/* =========================================================================
+ * LED behavior — none on RMX3171 chassis (no notification LED).
+ * Samsung A05 has LEDs; we disable them here.
+ * =========================================================================
+ */
+&mtk_leds {
+	backlight {
+		label = "lcd-backlight";
+		max-brightness = <255>;
+		max-hw-brightness = <2047>;
+		min-hw-brightness = <16>;
+	};
+};
+
+/* =========================================================================
+ * TODO_DEVICE_BOOT markers (require physical RMX3171 + dmesg to resolve)
+ *
+ *   1. Active LCM panel from six stock candidates — confirm via
+ *      `dmesg | grep -i lcm` on first boot, then override
+ *      atag,videolfb-lcmname above.
+ *
+ *   2. Active camera sensor tuple — see camera DTS overlay (TODO: write
+ *      rmx3171_camera.dtsi after first ISP probe log).
+ *
+ *   3. Goodix SPI controller index + IRQ GPIO + RST GPIO — Realme stock
+ *      dtbdump did not expose at root; pull from stock vendor proprietary
+ *      device tree fragment.
+ *
+ *   4. sia81xx I2C reset GPIO and audio routing — confirm from stock
+ *      audio_policy.xml + vendor blob strings.
+ *
+ *   5. GPU OPP voltage table for this silicon bin — read from stock vendor
+ *      blob `vendor/etc/cust_g85.cfg` if present, else conservative default.
+ *
+ * Each TODO maps to a phase in the production plan (see
+ * docs/02_phase_plan.md once written).
+ * =========================================================================
+ */

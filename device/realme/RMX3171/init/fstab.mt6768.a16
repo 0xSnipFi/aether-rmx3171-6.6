@@ -1,0 +1,38 @@
+# AETHER RMX3171 — Android 16 fstab (A12+ layout with vendor_dlkm + init_boot)
+#
+# Drop-in replacement for fstab.mt6768 when targeting A16 boot.
+# Mount order matters: vendor must be before vendor_dlkm.
+#
+# Evidence: HW truth §10; stock A11 fstab.mt6768 (preserved most fields,
+# added A16 deltas).
+
+#<src>                                          <mount_point>           <type>  <mnt_flags and options>                                                                                                                            <fs_mgr_flags>
+system                                          /system                 ext4    ro                                                                                                                                                  wait,avb=vbmeta_system,logical,first_stage_mount,slotselect,readahead_size_kb=128
+vendor                                          /vendor                 ext4    ro                                                                                                                                                  wait,avb,logical,first_stage_mount,slotselect,discard,readahead_size_kb=128
+vendor_dlkm                                     /vendor_dlkm            ext4    ro                                                                                                                                                  wait,avb,logical,first_stage_mount,slotselect,discard,readahead_size_kb=128
+product                                         /product                ext4    ro                                                                                                                                                  wait,logical,first_stage_mount,slotselect,readahead_size_kb=128
+system_ext                                      /system_ext             ext4    ro                                                                                                                                                  wait,logical,first_stage_mount,slotselect,readahead_size_kb=128
+odm                                             /odm                    ext4    ro                                                                                                                                                  wait,logical,first_stage_mount,slotselect,readahead_size_kb=128
+
+# Metadata partition (encryption key storage)
+/dev/block/by-name/md_udc                       /metadata               ext4    noatime,nosuid,nodev,discard,data=journal,commit=1                                                                                                  wait,formattable,first_stage_mount
+
+# Userdata — A16: inline crypto with v2 fileencryption + fsverity + 16k pages compat
+/dev/block/by-name/userdata                     /data                   f2fs    noatime,nosuid,nodev,discard,noflush_merge,fsync_mode=nobarrier,reserve_root=134217,resgid=1065,inlinecrypt                                          latemount,wait,check,formattable,reservedsize=128m,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,metadata_encryption=aes-256-xts:wrappedkey_v0,keydirectory=/metadata/vold/metadata_encryption,readahead_size_kb=128,fsverity
+
+# Vendor protect partitions (MTK)
+/dev/block/by-name/protect1                     /mnt/vendor/protect_f   ext4    noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc                                                                                            wait,check,formattable
+/dev/block/by-name/protect2                     /mnt/vendor/protect_s   ext4    noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc                                                                                            wait,check,formattable
+/dev/block/by-name/nvdata                       /mnt/vendor/nvdata      ext4    noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc                                                                                            wait,check,formattable
+/dev/block/by-name/nvcfg                        /mnt/vendor/nvcfg       ext4    noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc                                                                                            wait,check,formattable
+/dev/block/by-name/persist                      /mnt/vendor/persist     ext4    noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc                                                                                            wait,check,formattable
+
+# SD card / OTG
+/devices/platform/externdevice*                 auto                    auto    defaults                                                                                                                                            voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/mt_usb*                       auto                    auto    defaults                                                                                                                                            voldmanaged=usbotg:auto
+
+# FRP
+/dev/block/by-name/frp                          /persistent             emmc    defaults                                                                                                                                            defaults
+
+# ZRAM (init.rc activates after data mount)
+/dev/block/zram0                                none                    swap    defaults                                                                                                                                            zramsize=50%,max_comp_streams=8

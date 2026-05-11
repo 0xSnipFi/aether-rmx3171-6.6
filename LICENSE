@@ -1,0 +1,30 @@
+This repository contains:
+
+1. AETHER overlay source (configs, DTS, build scripts, vendor tree skeleton)
+   under aether-rmx3171/, device/realme/RMX3171/, docs/, .github/, scripts at
+   the repo root, and the README.md / AETHER_*.md documentation files.
+   These AETHER-original parts are licensed under GPL-2.0-only to be ABI-
+   compatible with the Linux kernel they overlay.
+
+2. Linux kernel base, MediaTek BSP, Samsung kernel_device_modules-6.6, and
+   vendor/mediatek/kernel_modules ARE NOT redistributed in this repository.
+   Users must stage those from the upstream Samsung A055F open-source kernel
+   release via scripts/sync_samsung_base.sh (see README).
+
+3. KernelSU integration source is fetched from
+   https://github.com/tiann/KernelSU at build time and is licensed under
+   GPL-2.0-only by its upstream maintainers.
+
+4. AnyKernel3 packaging template is fetched from
+   https://github.com/osm0sis/AnyKernel3 at build time and licensed under
+   AnyKernel3's own terms.
+
+GPL-2.0-only
+
+Linux is Copyright (C) the Linux Foundation and contributors.
+MediaTek MTK BSP is Copyright (C) MediaTek Inc.
+Samsung kernel-6.6 is Copyright (C) Samsung Electronics Co., Ltd.
+AETHER overlay code is Copyright (C) 2026 the AETHER contributors.
+
+You may redistribute and/or modify under the terms of GNU GPL v2.
+See https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt

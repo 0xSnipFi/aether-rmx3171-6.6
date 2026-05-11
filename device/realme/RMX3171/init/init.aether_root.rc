@@ -1,0 +1,49 @@
+# AETHER RMX3171 — init.aether_root.rc
+#
+# Coordinates KernelSU + Magisk coexistence and AETHER-specific tuning.
+#
+# Load order rules:
+#   1. KernelSU is built-in (CONFIG_KSU=y). su daemon installed by KSU
+#      manager APK; daemon is invoked via setuid mechanism on /system or
+#      via Magisk patch boot — both paths supported.
+#   2. Magisk hooks via boot image patch. Magisk's overlayfs MUST mount
+#      before /system finishes mounting. Magisk install handles this if
+#      boot image is patched.
+#   3. We do NOT pre-grant root here. Manager APKs decide grants.
+
+on init
+    # NetHunter: configfs USB gadget root for tools like dnmasq, hcitool
+    mkdir /config 0500 root root
+    mount configfs none /config
+
+on early-fs
+    # Pre-mount AETHER tweaks
+    write /proc/sys/kernel/sched_child_runs_first 0
+    write /proc/sys/kernel/perf_event_paranoid 0
+
+on post-fs
+    # ZRAM: enable LZ4 swap after /data mounted
+    write /sys/block/zram0/comp_algorithm lz4
+    write /sys/block/zram0/disksize $(getprop sys.disksize)
+
+on post-fs-data
+    # KernelSU manager APK install path (KSU app)
+    mkdir /data/adb 0700 root root
+    mkdir /data/adb/ksu 0700 root root
+    mkdir /data/adb/modules 0755 root root
+
+    # Magisk standard paths (allow coexistence if user installs Magisk on top)
+    mkdir /data/adb/magisk 0755 root root
+    mkdir /data/adb/magisk_simple 0755 root root
+
+on boot
+    # Lower CPU governor latency for snappier UI
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 500
+    write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 500
+
+    # NetHunter USB gadget setup (configfs path)
+    chown system system /sys/kernel/config/usb_gadget
+    chmod 0775 /sys/kernel/config/usb_gadget
+
+    # GPU thermal limits — start conservative, tune after telemetry
+    write /sys/kernel/ged/hal/gpu_boost_level 1

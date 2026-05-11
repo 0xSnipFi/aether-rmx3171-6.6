@@ -1,0 +1,45 @@
+# RMX3171 stock-derived vendor properties for Android 16 bring-up.
+ro.product.board=oppo6769
+ro.board.platform=mt6768
+ro.vendor.mediatek.platform=MT6768
+ro.hardware.egl=mali
+ro.opengles.version=196610
+ro.sf.lcd_density=480
+ro.frp.pst=/dev/block/platform/bootdevice/by-name/frp
+
+# Camera.
+vendor.camera.mdp.cz.enable=1
+vendor.camera.mdp.dre.enable=0
+ro.vendor.camera3.zsl.default=140
+persist.vendor.camera3.pipeline.bufnum.base.imgo=4
+persist.vendor.camera3.pipeline.bufnum.base.rrzo=4
+persist.vendor.camera3.pipeline.bufnum.base.lcso=4
+persist.vendor.camera3.pipeline.bufnum.base.rsso=5
+
+# Connectivity.
+ro.mediatek.wlan.p2p=1
+ro.mediatek.wlan.wsc=1
+persist.vendor.connsys.fm_chipid=mt6631
+persist.vendor.connsys.fm_50khz_support=1
+ro.vendor.mtk_fm_50khz_support=1
+
+# Radio / IMS.
+ro.vendor.mtk_protocol1_rat_config=Lf/Lt/W/G
+ro.vendor.mtk_ps1_rat=Lf/Lt/W/G
+ro.vendor.mtk_lte_support=1
+ro.vendor.mtk_md1_support=9
+ro.vendor.mtk_c2k_lte_mode=0
+ro.vendor.num_md_protocol=2
+persist.vendor.radio.msimmode=dsds
+persist.vendor.mtk_sim_switch_policy=2
+
+# Audio.
+ro.vendor.mtk_audio_alac_support=1
+ro.vendor.mtk_audio_ape_support=1
+ro.vendor.mtk_audio_tuning_tool_ver=V2.2
+
+# Memory/performance.
+ro.vendor.mtk_config_max_dram_size=0x800000000
+ro.lmk.psi_complete_stall_ms=70
+ro.lmk.swap_free_low_percentage=20
+ro.lmk.kill_timeout_ms=100
