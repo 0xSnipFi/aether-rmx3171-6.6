@@ -77,13 +77,20 @@ where it does.
 
 #### What's still missing in 6.6 track
 
-See **[docs/MISSING.md](docs/MISSING.md)** for the full evidence-based audit
-(P0 → P3 priorities, with file references). Headline gaps:
+See **[docs/MISSING.md](docs/MISSING.md)** for the evidence-based gap list
++ **[docs/PRODUCTION_ROADMAP.md](docs/PRODUCTION_ROADMAP.md)** for the
+realistic 6-month plan to 100% daily-driver parity.
 
-- **P0**: dtbo build, system_dlkm partition, bootconfig.img, KMI allowlist
-- **P1**: panel-ilt9881h DRM port (no display!), touch chip verify, sia81xx audio amp
-- **P2**: gm30 battery gauge, Goodix fingerprint, FM mt6631, camera (ISP3 vs ISP8 mismatch), Mali r34 (vendor Mali is r49 Valhall — wrong gen)
-- **P3**: clk-mt6768 full driver, vibrator, camera flash
+Headline gaps (re-audited 2026-05-12):
+
+- **P0** boot integrity: dtbo build, system_dlkm partition, bootconfig.img, KMI allowlist
+- **P1** daily-use: panel-ilt9881h DRM port, touch NT36525B Novatek port, sia81xx audio amp, mt6370 PE+ charging, gm30 simple gauge
+- **P2** ⚠ feasibility revised: Mali Bifrost r25p0 (4.14 has it!), camera ISP3 (~12K LoC, hard but doable), modem ECCCI (~12K LoC + signed blobs), FP/FM/etc
+- **P3** optional: clk-mt6768 (DTS workaround), vibrator, flashlight
+
+Realistic timeline:
+- **MVP daily-driver** (no cam/cell): 6 weeks solo / 3 weeks team
+- **Full daily-driver**: 6 months solo / 3 months team
 
 Compiled-clean ≠ runs-on-device. Real boot test needed.
 

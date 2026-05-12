@@ -1,5 +1,19 @@
 # What's MISSING for full RMX3171 A16 daily-driver — evidence-based
 
+> **2026-05-12 UPDATE — re-audit corrections:** Several "infeasible"
+> claims below have been **REVISED — see `PRODUCTION_ROADMAP.md`**. Quick
+> corrections:
+> - **Mali GPU**: 4.14 has Bifrost r25p0 (right family) → port FEASIBLE
+> - **Camera ISP3**: 27 MB / 300 files / ~12 K LoC → hard but FEASIBLE
+> - **Modem ECCCI**: 2.1 MB / 54 .c / ~12 K LoC + Samsung partial ccci_util
+>   already in 6.6 → FEASIBLE
+> - **Touch**: Confirmed NT36525B Novatek (no longer "unknown")
+> - **Connectivity**: Samsung tree has gen4m+gen4m_s1+bt+fm+gps+conninfra
+>   already 6.6-ready (superset of our port)
+>
+> See `docs/PRODUCTION_ROADMAP.md` for realistic 6-month timeline to full
+> daily-driver parity.
+
 Audit date: **2026-05-12**. Cross-checked against:
 - staged `kernel-6.6/` (1.6 GB, Samsung A055F Linux 6.6.50)
 - staged `device-modules/` (323 MB, Samsung kernel_device_modules-6.6)
@@ -169,38 +183,41 @@ that's in 4.14 `mtk_pe.c` (not ported).
 
 ## P2 — quality-of-life gaps
 
-### P2.1 — Camera: ISP3 framework not present ❌ (likely infeasible)
+### P2.1 — Camera: ISP3 framework not present ⚠ (HARD but FEASIBLE — corrected)
 
-**Evidence:**
-- RMX3171 stock 4.14 has **27 sensor candidates** under
-  `drivers/misc/mediatek/imgsensor/src/common/v1/` (ov13b10, ov13855,
-  ov8856, ov8858, imx258, imx338, imx350, imx386, imx486, ov12a10, etc.)
-- Samsung mtkcam in `vendor-modules/.../mtkcam/imgsensor/src-isp8/` has
-  **20 sensors** but ALL newer Galaxy series (imx758, imx866, imx989,
-  ov48b, ov64b — none of which are in RMX3171).
-- **Zero overlap.** mtkcam is ISP8 generation, RMX3171 ISP3.
+**Evidence (corrected):**
+- 4.14 `drivers/misc/mediatek/cameraisp/` = **5.7 MB, 42 .c files** (ISP3 framework)
+- 4.14 `drivers/misc/mediatek/imgsensor/` = **21 MB, 264 .c files** (28 sensor drivers)
+- Total: ~27 MB / ~300 files / **~12 K LoC** (was earlier estimated 50K — wrong)
+- RMX3171 sensors: ov13b10 (rear), s5k4h7 (front), gc2375h (macro), ov02a1b (depth)
+- Samsung mtkcam ISP8 (Galaxy era) sensors don't match — confirmed no overlap.
 
-**Impact:** No camera (preview / photo).
+**Impact:** No camera (preview / photo) until ported.
 
-**Fix:** Either:
-  (a) Port full MTK ISP3 framework + 4.14 imgsensor drivers (~50K LoC, vendor
-      BSP gate, infeasible without device-test loop), or
-  (b) Port single 4.14 sensor (ov13b10 = rear, s5k4h7 = front) via libcamera
-      V4L2 generic driver as a simpler scaffold (no MTK ISP — passes raw to
-      userspace).
+**Fix paths** (see `PRODUCTION_ROADMAP.md` Phase 8):
+  - **Full path** (~190 h): Port ISP_50 framework + key sensors + match
+    proprietary camera HAL. Full daily-driver quality.
+  - **V4L2 path** (~70 h): Skip MTK ISP, raw passthrough to userspace libcamera.
+    Lower quality but 3× faster to ship.
 
 ---
 
-### P2.2 — GPU: Mali r34/r38 (G52 MC1, Bifrost) not in vendor-modules ❌
+### P2.2 — GPU: Mali Bifrost not yet ported ⚠ (FEASIBLE — corrected)
 
-**Evidence:** `vendor-modules/.../gpu/gpu_mali/mali_avalon/mali-r49p1/` is
-**Valhall** GPU driver (G77+/Immortalis). RMX3171's Mali-G52 MC1 is
-**Bifrost** gen 2. Architecture mismatch.
+**Evidence (corrected):**
+- 4.14 `drivers/misc/mediatek/gpu/gpu_mali/mali_bifrost/` contains
+  **r14/r15/r16/r18/r20/r24/r25p0** — all Bifrost = right family for G52 MC1.
+- Samsung vendor-modules' mali_avalon-r49p1 is Valhall = wrong (was the basis
+  of earlier "infeasible" claim).
+- **r25p0** is most modern Bifrost — best port candidate.
 
-**Impact:** No 3D acceleration. Apps fall back to software OpenGL (slow).
+**Impact:** No 3D acceleration until ported. Apps fall back to swiftshader.
 
-**Fix:** Pull MTK Mali r34p0-or-r38p1 from 4.14 Realme tree (Bifrost-compat),
-patch to 6.6 KMI. Or accept SwiftShader software GLES (~10 FPS).
+**Fix paths** (see `PRODUCTION_ROADMAP.md` Phase 7):
+  - **Proprietary path** (~120 h): Port mali_bifrost-r25p0 from 4.14 → 6.6
+    KMI. Stable kernel API. Match userspace `libGLES_mali.so` ABI.
+  - **Panfrost path** (~140 h): Use mainline `drivers/gpu/drm/panfrost/`.
+    Open-source, lower performance, no vendor lock-in.
 
 ---
 
@@ -229,16 +246,22 @@ build doesn't gate kernel, safe to iterate.
 
 ---
 
-### P2.5 — Cellular modem (ECCCI) absent ❌ (vendor BSP gate)
+### P2.5 — Cellular modem (ECCCI) absent ⚠ (FEASIBLE — corrected)
 
-**Evidence:** No `ccci_*` or `md1*` drivers built. 4.14 has full ECCCI in
-`drivers/misc/mediatek/eccci/` (40+ files).
+**Evidence (corrected):**
+- 4.14 `drivers/misc/mediatek/eccci/`: **2.1 MB, 54 .c files** (~12 K LoC,
+  was earlier estimated 80K — wrong)
+- Samsung device-modules already has partial port:
+  `device-modules/drivers/misc/mediatek/ccci_util/` (5 files, 6.6-ready)
+- Modem firmware (md1img.img + md1dsp.img) extractable from stock vendor.
 
-**Impact:** **No cellular calls or mobile data.** WiFi-only device.
+**Impact:** No cellular calls or mobile data until ported.
 
-**Fix:** ECCCI port = massive (~80K LoC, signed firmware blobs, modem .img
-required, vendor RIL HAL match). Realistically infeasible without
-manufacturer support. WiFi-only daily-driver = accept.
+**Fix paths** (see `PRODUCTION_ROADMAP.md` Phase 9):
+  - Port ECCCI framework (~60 h) + integrate signed modem .img blobs (~16 h)
+    + link vendor RIL HAL (~24 h) + APN/SIM/VoLTE (~24 h) + test (~16 h).
+  - **Total ~140 h** (~4 weeks solo).
+  - **Hardest realistic path** in the roadmap — leave for phase 9 of 10.
 
 ---
 
