@@ -90,3 +90,65 @@ BOARD_MAIN_PARTITION_LIST := product vendor system system_ext odm vendor_dlkm
 # ============================================================
 PRODUCT_TARGET_VNDK_VERSION := 35
 PRODUCT_SHIPPING_API_LEVEL := 35
+
+# ============================================================
+# system_dlkm partition — A16 GKI 2.0 (P0.2 fix)
+# ============================================================
+# GKI modules (mainline kernel drivers) live in /system_dlkm, vendor-specific
+# in /vendor_dlkm. Split required for CTS-on-GSI compliance.
+BOARD_USES_SYSTEM_DLKMIMAGE := true
+BOARD_SYSTEM_DLKMIMAGE_FILE_SYSTEM_TYPE := erofs
+BOARD_SYSTEM_DLKMIMAGE_PARTITION_SIZE := 67108864     # 64 MB
+BOARD_SYSTEM_DLKM_MODULES_LOAD := \
+    $(shell cat $(DEVICE_PATH)/../../../../aether-rmx3171/modules/system_dlkm.modules.load 2>/dev/null | grep -v '^#' | grep -v '^$$' | tr '\n' ' ')
+
+# Add system_dlkm to AVB chain
+BOARD_AVB_VBMETA_SYSTEM_DLKM := system_dlkm
+BOARD_AVB_VBMETA_SYSTEM_DLKM_KEY_PATH := external/avb/test/data/testkey_rsa2048.pem
+BOARD_AVB_VBMETA_SYSTEM_DLKM_ALGORITHM := SHA256_RSA2048
+BOARD_AVB_VBMETA_SYSTEM_DLKM_ROLLBACK_INDEX := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
+BOARD_AVB_VBMETA_SYSTEM_DLKM_ROLLBACK_INDEX_LOCATION := 6
+
+# Add to super partition group
+BOARD_MAIN_PARTITION_LIST += system_dlkm
+
+# ============================================================
+# bootconfig.img — A16 boot props (P0.4 fix)
+# ============================================================
+# Replaces kernel cmdline for `androidboot.*` props in A16+.
+BOARD_BOOTCONFIG := \
+    androidboot.hardware=mt6768 \
+    androidboot.console=ttyS0,921600n8 \
+    androidboot.boot_devices=bootdevice \
+    androidboot.selinux=enforcing \
+    androidboot.veritymode=enforcing \
+    androidboot.gki.kernel_release_string=6.6.50-AETHER-X-RMX3171-A16+
+
+# ============================================================
+# DTBO image — A16 overlay device-tree (P0.1 fix)
+# ============================================================
+# Built by scripts/build/pack_dtbo.sh + flashed to dtbo partition.
+BOARD_KERNEL_DTBOIMAGE_PARTITION_SIZE := 8388608       # 8 MB
+BOARD_DTBOIMG_PARTITION_SIZE := 8388608
+BOARD_INCLUDE_RECOVERY_DTBO := false                    # use main dtbo partition
+BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/../../../../out/dtbo.img
+
+# ============================================================
+# OTA + update_engine
+# ============================================================
+AB_OTA_UPDATER := true
+AB_OTA_PARTITIONS := \
+    boot \
+    init_boot \
+    vendor_boot \
+    dtbo \
+    vbmeta \
+    vbmeta_system \
+    vbmeta_vendor \
+    system \
+    system_dlkm \
+    system_ext \
+    product \
+    vendor \
+    vendor_dlkm \
+    odm

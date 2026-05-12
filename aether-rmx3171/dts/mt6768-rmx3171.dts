@@ -185,14 +185,47 @@
 &i2c4 {
 	status = "okay";
 
-	rmx3171_sia81xx: sia81xx@29 {
-		compatible = "si,sia81xx-i2c";
-		reg = <0x29>;
-		status = "okay";
-		/*
-		 * Reset GPIO from stock vendor proprietary file.
-		 * TODO_DEVICE_BOOT: confirm GPIO number.
+	rmx3171_sia81xx: sia81xx@1c {
+		/* AETHER minimal sia81xx driver — see
+		 * aether-rmx3171/ports/audio/sia81xx-aether.c
 		 */
+		compatible = "si-in,sia81xx";
+		reg = <0x1c>;
+		enable-gpios = <&pio 132 0>;	/* GPIO_ACTIVE_HIGH; PA enable */
+		status = "okay";
+	};
+};
+
+/* =========================================================================
+ * Display panel — RMX3171 ILT9881H 720x1600 HD+ DSI video-mode.
+ * AETHER ported DRM panel — see aether-rmx3171/ports/panel/.
+ * =========================================================================
+ */
+&dsi0 {
+	status = "okay";
+
+	rmx3171_panel: panel@0 {
+		compatible = "realme,rmx3171-ilt9881h-truly";
+		reg = <0>;
+		reset-gpios = <&pio 45 1>;	/* GPIO_ACTIVE_LOW */
+		vsp-supply = <&dsv_pos>;
+		vsn-supply = <&dsv_neg>;
+		backlight = <&mtk_leds>;
+		status = "okay";
+	};
+};
+
+/* =========================================================================
+ * Battery fuelgauge — AETHER simple voltage-curve gauge.
+ * Reads VBAT from mt6370_charger, looks up SOC in battery0_profile_t0..t4
+ * tables defined in rmx3171_bat_profile.dtsi.
+ * =========================================================================
+ */
+&odm {
+	rmx3171_gauge: aether-gauge {
+		compatible = "aether,simple-gauge";
+		battery-manager = <&battery_manager>;
+		status = "okay";
 	};
 };
 

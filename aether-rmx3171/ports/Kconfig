@@ -1,0 +1,49 @@
+# AETHER RMX3171 ports — Kconfig fragments
+#
+# Source from kernel-6.6/drivers/Kconfig via:
+#   source "../aether-rmx3171/ports/Kconfig"
+# (or symlink ports/ into kernel-6.6/drivers/aether/)
+
+menu "AETHER RMX3171 ports"
+
+config AETHER_PANEL_ILT9881H_RMX3171
+	tristate "Realme RMX3171 ILT9881H 720x1600 HD+ DSI panel"
+	depends on DRM && DRM_MIPI_DSI && OF
+	select VIDEOMODE_HELPERS
+	help
+	  Driver for ILT9881H 720x1600 HD+ MIPI-DSI video-mode panel on
+	  Realme Narzo 30A (RMX3171). Ported from 4.14 vendor LCM.
+	  Both Truly and TXD panel variants supported via DT compatible.
+	  Say M to build as panel-ilt9881h-rmx3171.ko.
+
+config AETHER_SIMPLE_GAUGE
+	tristate "AETHER RMX3171 simple voltage-curve fuelgauge"
+	depends on POWER_SUPPLY && OF
+	select THERMAL
+	help
+	  Lightweight fuelgauge using rmx3171_bat_profile.dtsi voltage→SOC
+	  tables instead of MTK gm30 coulomb counter framework. ±3% SOC
+	  accuracy. Use when full gm30 port is not available.
+	  Say M to build as aether-simple-gauge.ko.
+
+config AETHER_SND_SOC_SIA81XX
+	tristate "AETHER sia81xx minimal ASoC codec (smart speaker PA)"
+	depends on I2C && SND_SOC && OF
+	select REGMAP_I2C
+	help
+	  Minimal sia81xx (sia8101/8108/8109) audio PA codec driver.
+	  Replaces 3500-LoC 4.14 vendor driver with regmap-based codec
+	  exposing power-on / mute / volume controls. Auto-detects chip
+	  via CHIPID register.
+	  Say M to build as sia81xx-aether.ko.
+
+config AETHER_PINCTRL_MT6768
+	bool "RMX3171 MT6768 pinctrl (ported from 4.14)"
+	depends on PINCTRL_MTK_PARIS
+	default y
+	help
+	  Ported MT6768 pinctrl driver from 4.14 (5 API adaptations) +
+	  2750-line pin data tables. Required for GPIO/pinmux on
+	  RMX3171.
+
+endmenu

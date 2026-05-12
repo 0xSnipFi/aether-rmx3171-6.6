@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-2.0
+# AETHER RMX3171 ports — top-level Makefile
+#
+# Symlink this dir into kernel-6.6/drivers/aether/ then add to
+# kernel-6.6/drivers/Makefile:
+#   obj-y += aether/
+
+obj-$(CONFIG_AETHER_PANEL_ILT9881H_RMX3171) += panel/panel-ilt9881h-rmx3171.o
+obj-$(CONFIG_AETHER_SIMPLE_GAUGE)           += power/aether-simple-gauge.o
+obj-$(CONFIG_AETHER_SND_SOC_SIA81XX)        += audio/sia81xx-aether.o
+obj-$(CONFIG_AETHER_PINCTRL_MT6768)         += pinctrl/pinctrl-mt6768.o
+
+ccflags-y += -I$(srctree)/drivers/pinctrl/mediatek
