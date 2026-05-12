@@ -21,6 +21,7 @@ AnyKernel3/
 # Build logs
 *.log
 build*.exit
+.build-logs/
 
 # Toolchain
 toolchain/

@@ -77,19 +77,18 @@ where it does.
 
 #### What's still missing in 6.6 track
 
-| Missing | Why | Workaround |
-|---|---|---|
-| clk-mt6768 (full clk subsystem) | 3365-line 4.14 driver not ported | Use bootloader-configured clocks; deferred |
-| RMX3171 panel driver (ilt9881h / nt36525b) | Not in mainline | Generic mipi-dsi binding; runtime LCM select; user can port from 4.14 |
-| Battery gm30 fuelgauge | Not ported | Charger reports voltage; SOC estimation rough |
-| sia81xx smart PA | Audio amp | Audio works without it; lower volume |
-| FM radio MT6631 | Not ported | No FM radio app |
-| Camera ISP + imgsensor | Massive 4.14 port | No camera (preview/photo) |
-| Mali GPU avalon | Vendor BSP | No 3D acceleration |
-| Modem ECCCI | Massive 4.14 port | No cellular |
-| RMX3171-specific touch (Focaltech / Realme variant) | Vendor blob | Try goodix_ts.ko + edt-ft5x06.ko |
-| RMX3171 fingerprint (Goodix Berlin) | Vendor blob | DTS node ready; needs HAL |
-| Real device boot test | No device in loop | Community testing needed |
+See **[docs/MISSING.md](docs/MISSING.md)** for the full evidence-based audit
+(P0 → P3 priorities, with file references). Headline gaps:
+
+- **P0**: dtbo build, system_dlkm partition, bootconfig.img, KMI allowlist
+- **P1**: panel-ilt9881h DRM port (no display!), touch chip verify, sia81xx audio amp
+- **P2**: gm30 battery gauge, Goodix fingerprint, FM mt6631, camera (ISP3 vs ISP8 mismatch), Mali r34 (vendor Mali is r49 Valhall — wrong gen)
+- **P3**: clk-mt6768 full driver, vibrator, camera flash
+
+Compiled-clean ≠ runs-on-device. Real boot test needed.
+
+7 port-task scaffolds with 4.14 source staged + playbooks under
+[`aether-rmx3171/ports/TODO/`](aether-rmx3171/ports/TODO/).
 
 ## Latest artifacts (2026-05-12)
 
@@ -106,33 +105,33 @@ Configs: 68 MTK-related
 
 ## Repository structure
 
+Full layout: **[docs/STRUCTURE.md](docs/STRUCTURE.md)**.
+
 ```
 aether-rmx3171-6.6/
-├── aether-rmx3171/
-│   ├── configs/aether_rmx3171_overlay.config  AETHER overlay (KSU/NetHunter/A16)
-│   ├── dts/mt6768-rmx3171.dts                 RMX3171 board DTS
-│   ├── dts/cust_mt6768_rmx3171_pinctrl.dtsi   95 stock pin groups extracted
-│   ├── dts/rmx3171_bat_profile.dtsi           4-battery × 5-temp fuelgauge profile
-│   ├── modules/vendor_boot.modules.load
-│   ├── modules/vendor_dlkm.modules.load
-│   ├── build/                                  build + stage + restore scripts
-│   └── ports/                                  4.14→6.6 driver ports
-│       ├── pinctrl/pinctrl-mt6768.c           ported driver (5 API fixes)
-│       ├── pinctrl/pinctrl-mtk-mt6768.h       data tables 2750 lines
-│       ├── configs/aether_mtk_enable.config   68 MTK config enable overlay
-│       └── README.md                           port docs + roadmap
-├── device/realme/RMX3171/                     A16 device tree (126 files)
-├── vendor/realme/RMX3171/                     proprietary blob staging area
-├── releases/                                   gitignored — distribute via GH Releases
-├── docs/
-│   ├── 01_hardware_truth.md                   canonical RMX3171 evidence
-│   ├── BUILD.md
-│   └── KLEAF_BUILD.md                          alternate Samsung Kleaf path
-├── scripts/sync_samsung_base.sh
-├── .github/                                    CI + issue templates
-├── README.md  CONTRIBUTING.md  RELEASES.md  LICENSE
-└── .gitignore
+├── aether-rmx3171/        ★ AETHER overlay (the only thing we own)
+│   ├── configs/             kernel .config fragments
+│   ├── dts/                 RMX3171 device-tree (270 + 462 + 106 lines)
+│   ├── modules/             vendor_boot + vendor_dlkm load lists
+│   ├── ports/               ports/pinctrl (done), ports/TODO/ (7 scaffolds)
+│   ├── abi/                 KMI allowlist (A16 GKI 2.0)
+│   ├── firmware/            blob staging (gitignored)
+│   └── build/               kernel build entry scripts
+├── device/realme/RMX3171/  Android 16 device tree (126 files, full HAL/init/AVB/super)
+├── docs/                    STRUCTURE, MISSING, A16_BRINGUP, VENDOR_BLOBS, status/
+├── scripts/                 build + release automation
+│   ├── build/pack_dtbo.sh   ★ NEW
+│   └── release/build_release.sh  ★ NEW
+├── vendor/realme/RMX3171/  proprietary blob staging (gitignored)
+├── releases/                gitignored — distribute via GH Releases page
+├── .github/                 CI + issue templates
+└── README, CONTRIBUTING, RELEASES, LICENSE
 ```
+
+Gitignored on-disk (re-staged via `scripts/sync_samsung_base.sh`):
+`kernel-6.6/` (1.6 GB) · `device-modules/` (323 MB Samsung MTK BSP) ·
+`vendor-modules/` (284 MB MTK kernel_modules: mtkcam/gpu/connectivity) ·
+`KernelSU/` · `AnyKernel3/` · `out/`
 
 ## Quick start (build)
 
