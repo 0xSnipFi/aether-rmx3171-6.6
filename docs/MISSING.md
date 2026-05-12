@@ -172,10 +172,10 @@ Auto-poweroff at wrong %.
 ### P1.5 — Charger curve / fast-charge not configured ⚠️
 
 **Evidence:** `mt6370_charger.ko` loads, but no charging policy from
-`<linux/power/mtk_charger.h>` framework. 30W fast-charge requires PE+ handshake
-that's in 4.14 `mtk_pe.c` (not ported).
+`<linux/power/mtk_charger.h>` framework. **18W Quick Charge** (9V/2A) requires
+PE+ (Pump Express Plus) handshake from 4.14 `mtk_pe.c` (not ported).
 
-**Impact:** Charges at default 5V/2A only (~10W). Charge time doubled.
+**Impact:** Charges at default 5V/2A only (~10W). 18W → ~10W = ~80% slower.
 
 **Fix:** Port PE+ handshake from 4.14 `drivers/power/mediatek/charger/mtk_pe.c`.
 

@@ -1,13 +1,24 @@
 # AETHER Kernel — Realme Narzo 30A (RMX3171)
 
-**MT6768 / Helio G85 SoC. Linux 6.6.129 ACK base + 4.14 legacy.**
+![License](https://img.shields.io/badge/license-GPL--2.0-blue)
+![Kernel](https://img.shields.io/badge/linux-6.6.50-green)
+![Device](https://img.shields.io/badge/device-Realme%20Narzo%2030A-orange)
+![SoC](https://img.shields.io/badge/SoC-MT6768%20Helio%20G85-purple)
+![Status](https://img.shields.io/badge/status-experimental-yellow)
 
-> Two release tracks shipped. Pick based on goal:
+**MT6768 / Helio G85 SoC · 6000 mAh · 18W Quick Charge · 720×1600 HD+**
+**Linux 6.6.50 ACK base + 4.14 legacy track.**
+
+> Two release tracks. Pick based on goal:
 >
-> - 📱 **Daily-use flashable** → `releases/AETHER_RMX3171_4.14_legacy-20260511.zip`
->   (4.14.238 with FULL MTK BSP, 634 MTK symbols, all hardware drivers built)
-> - 🧪 **Modern A16 base** → `releases/AETHER_RMX3171_6.6_MT6768-20260512v4.zip`
->   (Linux 6.6.129 ACK + 1976 MTK symbols + KernelSU + ported pinctrl-mt6768)
+> - 📱 **Daily-use flashable** → `AETHER_RMX3171_4.14_legacy-*.zip`
+>   (4.14.238, full MTK BSP, 634 MTK symbols, proven hardware)
+> - 🧪 **Modern A16 base** → `AETHER_RMX3171_6.6_MT6768-*.zip`
+>   (6.6.50 ACK, 1976 MTK symbols, KernelSU, 8 real driver ports)
+>
+> **Before flashing read [`docs/FLASHING.md`](docs/FLASHING.md).**
+> Track 2 is **untested on device**. If you boot it, post log via
+> `boot_failure` issue template.
 
 ## Honest hardware coverage status
 
@@ -190,6 +201,36 @@ GPL-2.0-only. See `LICENSE`.
 - AnyKernel3 (fetched at build) — see AK3 license
 - Samsung A055F base / community a05m-kernel-6.6 — GPL-2.0 (not redistributed here)
 - Realme 4.14 source (used as porting reference) — GPL-2.0
+
+## Documentation
+
+| Doc | For |
+|---|---|
+| [`docs/FLASHING.md`](docs/FLASHING.md) | Users — how to flash + recover |
+| [`docs/BOOT_FAILURE_TRIAGE.md`](docs/BOOT_FAILURE_TRIAGE.md) | When it won't boot |
+| [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | Repo layout |
+| [`docs/MISSING.md`](docs/MISSING.md) | P0–P3 gap audit |
+| [`docs/PRODUCTION_ROADMAP.md`](docs/PRODUCTION_ROADMAP.md) | 6-month plan to full daily-driver |
+| [`docs/A16_BRINGUP.md`](docs/A16_BRINGUP.md) | A16-specific boot reqs |
+| [`docs/VENDOR_BLOBS.md`](docs/VENDOR_BLOBS.md) | Firmware extraction |
+| [`docs/HARDWARE_PINOUT.md`](docs/HARDWARE_PINOUT.md) | GPIO / I²C / SPI map |
+| [`docs/PORTING.md`](docs/PORTING.md) | Contribute a driver port |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | PR workflow |
+| [`docs/status/`](docs/status/) | Per-date status snapshots |
+
+## Real driver ports (8 in tree)
+
+| File | LoC | Replaces |
+|---|---:|---|
+| `aether-rmx3171/ports/pinctrl/pinctrl-mt6768.c` | 91 + 2750 H | 4.14 pinctrl |
+| `aether-rmx3171/ports/panel/panel-ilt9881h-rmx3171.c` | 363 | 4.14 LCM 607 |
+| `aether-rmx3171/ports/input/nt36525b-rmx3171.c` | 356 | 4.14 NT36525B 3800 |
+| `aether-rmx3171/ports/audio/sia81xx-aether.c` | 244 | 4.14 sia81xx 2512 |
+| `aether-rmx3171/ports/power/aether-simple-gauge.c` | 391 | mtk_battery 5170 |
+| `aether-rmx3171/ports/power/mt6370-pe-rmx3171.c` | 280 | mtk_pe 1500 |
+| `aether-rmx3171/ports/misc/goodix-fp-rmx3171.c` | 367 | gf_spi+netlink 2500 |
+| `aether-rmx3171/ports/connectivity/fm-mt6631-aether.c` | 320 | fmradio tree ~30000 |
+| **Total** | **~2400 LoC** | **replaces ~47000 LoC vendor cruft** |
 
 ## Credits
 

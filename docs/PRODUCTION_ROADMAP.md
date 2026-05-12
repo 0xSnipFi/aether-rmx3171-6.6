@@ -165,7 +165,7 @@ Must complete before flashing.
 |---|---|---|
 | **sia81xx ASoC codec rewrite** | 20 h | `ports/TODO/sia81xx-audio/README.md` already has skeleton. Replace 4.14 vendor framework with minimal regmap-based codec. ~400 LoC. |
 | **mt6358 audio routing** | 8 h | mainline `sound/soc/mediatek/mt6358/` works. Add machine driver tying mt6358 ↔ sia81xx. |
-| **mt6370_charger PE+ handshake port** | 24 h | 4.14 `drivers/power/mediatek/charger/mtk_pe.c` → adapt to 6.6 power-supply class. Enables 30W fast charge. ~1500 LoC. |
+| **mt6370_charger PE+ handshake port** | 24 h | 4.14 `drivers/power/mediatek/charger/mtk_pe.c` → adapt to 6.6 power-supply class. Enables **18W Quick Charge** (9V/2A via Pump Express+). ~1500 LoC. |
 | **gm30 fuelgauge — simple version** | 16 h | Per `gm30-battery/README.md` Path B. Use `rmx3171_bat_profile.dtsi` table lookup. ~400 LoC. |
 | **Build + test** | 8 h | speaker audible, charging at >5V, SOC ±5%. |
 

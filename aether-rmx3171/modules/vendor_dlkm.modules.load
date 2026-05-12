@@ -15,6 +15,8 @@ aether-simple-gauge.ko
 sia81xx-aether.ko
 nt36525b-rmx3171.ko
 goodix-fp-rmx3171.ko
+mt6370-pe-rmx3171.ko
+fm-mt6631-aether.ko
 
 # ============================================================
 # MTK common infrastructure

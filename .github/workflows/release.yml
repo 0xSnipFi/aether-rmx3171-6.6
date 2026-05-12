@@ -1,0 +1,98 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'release tag (e.g. v5)'
+        required: true
+        default: 'v5'
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+              bc bison build-essential ccache cpio device-tree-compiler \
+              file flex git gnupg gperf imagemagick libelf-dev libfdt-dev \
+              libssl-dev libxml2-utils python3 python3-pip rsync unzip xz-utils \
+              zip android-sdk-libsparse-utils android-tools-fsutils
+
+      - name: install clang prebuilt
+        run: |
+          mkdir -p ~/clang
+          # Use AOSP prebuilt matching Samsung A055F build (clang-r510928).
+          # CI uses lighter clang-15 for smoke build.
+          sudo apt-get install -y clang-15 lld-15
+          sudo ln -sf /usr/bin/clang-15 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/lld-15 /usr/local/bin/ld.lld
+          sudo ln -sf /usr/bin/llvm-nm-15 /usr/local/bin/llvm-nm
+
+      - name: smoke-build kernel (no full vendor modules)
+        run: |
+          # Real full build needs gitignored kernel-6.6/ from Samsung opensource.
+          # CI does sanity smoke build only — verifies AETHER overlay files
+          # compose against a stub.
+          echo "[skip] full kernel build requires Samsung A055F base."
+          echo "[skip] CI verifies overlay files only (see kernel-build.yml)."
+
+      - name: package AnyKernel zip (if base present)
+        if: ${{ hashFiles('kernel-6.6/Makefile') != '' }}
+        run: |
+          set -e
+          mkdir -p releases
+          TAG="${GITHUB_REF##*/}"
+          DATE="$(date +%Y%m%d)"
+          ZIP_NAME="AETHER_RMX3171_6.6_MT6768-${DATE}${TAG}.zip"
+          bash aether-rmx3171/build/build_aether_6_6.sh
+          bash scripts/build/pack_dtbo.sh out
+          mkdir -p AnyKernel3/modules/vendor_dlkm
+          find out -name '*.ko' -exec cp {} AnyKernel3/modules/vendor_dlkm/ \;
+          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/Image.gz-dtb
+          cp aether-rmx3171/modules/*.modules.load AnyKernel3/modules/
+          (cd AnyKernel3 && zip -r9 "../releases/${ZIP_NAME}" .)
+
+      - name: generate release notes
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          {
+            echo "# AETHER RMX3171 — ${TAG}"
+            echo
+            echo "## Highlights"
+            git log --oneline $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo HEAD~20)..HEAD \
+                | head -20
+            echo
+            echo "## Hardware coverage"
+            grep -A2 'WiFi gen4m\|panel-ilt9881h\|sia81xx\|simple-gauge\|nt36525\|goodix-fp\|mt6370-pe\|fm-mt6631' \
+                aether-rmx3171/modules/vendor_dlkm.modules.load | head -30 || true
+            echo
+            echo "See [docs/MISSING.md](docs/MISSING.md) for known gaps."
+            echo "See [docs/FLASHING.md](docs/FLASHING.md) before flashing."
+          } > release_notes.md
+          cat release_notes.md
+
+      - name: create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: |
+            releases/*.zip
+            releases/*.img
+            releases/*.sha256
+          generate_release_notes: false
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}

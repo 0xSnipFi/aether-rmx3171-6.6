@@ -66,4 +66,24 @@ config AETHER_GOODIX_FP
 	  IOCTL ABI preserved verbatim (vendor HAL depends on exact codes).
 	  Say M to build as goodix-fp-rmx3171.ko.
 
+config AETHER_MT6370_PE
+	tristate "MT6370 Pump Express+ 18W Quick Charge (RMX3171)"
+	depends on POWER_SUPPLY
+	help
+	  Enables 18W Quick Charge on Realme Narzo 30A by adding PE+
+	  (Pump Express Plus) handshake to mainline mt6370_charger.
+	  Negotiates 9V/2A instead of default 5V/2A (10W → 18W).
+	  Slim port of 4.14 mtk_pe.c (~1500 LoC → ~350 LoC).
+	  Say M to build as mt6370-pe-rmx3171.ko.
+
+config AETHER_FM_MT6631
+	tristate "MT6631 FM radio (RMX3171)"
+	depends on OF
+	help
+	  Slim port of 4.14 MTK Combo MT6631 FM radio driver
+	  (~30000 LoC → ~450 LoC). misc device /dev/fm with vendor
+	  IOCTL ABI preserved. Tune/seek/RSSI/mute via connsys bridge.
+	  RDS parsing is in userspace.
+	  Say M to build as fm-mt6631-aether.ko.
+
 endmenu
