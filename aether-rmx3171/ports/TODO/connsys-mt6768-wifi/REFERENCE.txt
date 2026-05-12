@@ -1,0 +1,1 @@
+See ~/aetherx/AETHER-X_KARNAL-Narzo30A/source/mtk-gen4m-6.6-port/ for working 6.6 port
