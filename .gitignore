@@ -15,9 +15,8 @@ build/out/
 .config.old
 .kernel-release
 
-# AnyKernel build output
-AnyKernel3/*.zip
-AnyKernel3/Image*
+# AnyKernel build output — fetched at build time, never committed
+AnyKernel3/
 
 # Build logs
 *.log
@@ -52,3 +51,7 @@ vendor/realme/RMX3171/proprietary/
 # OS
 .DS_Store
 Thumbs.db
+
+# Release artifacts (large zips — distribute via GitHub Releases page)
+releases/*.zip
+releases/*.img

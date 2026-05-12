@@ -1,8 +1,16 @@
-# AETHER Kernel — Linux 6.6.50 for Realme Narzo 30A (RMX3171)
+# AETHER Kernel — Realme Narzo 30A (RMX3171)
 
-> Android 16 (RUI 7) compatible kernel base for Realme Narzo 30A.
 > MT6768 / Helio G85 SoC. KernelSU + NetHunter + Magisk co-existence.
-> **Status: experimental — base builds clean, MTK BSP integration in progress.**
+> **Two tracks shipped:** 4.14 production-flashable + 6.6 experimental base.
+
+## Pick your zip
+
+| For | Use |
+|---|---|
+| 📱 **Flash on Narzo 30A daily** | `releases/AETHER_RMX3171_4.14_legacy-20260511.zip` (4.14, hardware works) |
+| 🧪 **Research / contribute / A16-native** | `releases/AETHER_RMX3171_6.6_A16-20260512.zip` (6.6, base only) |
+
+See [RELEASES.md](RELEASES.md) for hashes + flash instructions + what works.
 
 ---
 
