@@ -1,249 +1,203 @@
 # AETHER Kernel — Realme Narzo 30A (RMX3171)
 
-> MT6768 / Helio G85 SoC. KernelSU + NetHunter + Magisk co-existence.
-> **Two tracks shipped:** 4.14 production-flashable + 6.6 experimental base.
+**MT6768 / Helio G85 SoC. Linux 6.6.129 ACK base + 4.14 legacy.**
 
-## Pick your zip
+> Two release tracks shipped. Pick based on goal:
+>
+> - 📱 **Daily-use flashable** → `releases/AETHER_RMX3171_4.14_legacy-20260511.zip`
+>   (4.14.238 with FULL MTK BSP, 634 MTK symbols, all hardware drivers built)
+> - 🧪 **Modern A16 base** → `releases/AETHER_RMX3171_6.6_MT6768-20260512v4.zip`
+>   (Linux 6.6.129 ACK + 1976 MTK symbols + KernelSU + ported pinctrl-mt6768)
 
-| For | Use |
+## Honest hardware coverage status
+
+### Track 1: 4.14.238 — flashable, hardware proven
+
+Built from Realme/OPPO `kernel_realme_moon` (4.14.238) which IS the MT6768 BSP.
+All MTK drivers compile **in vmlinux** (634 MTK symbols). Validated build green.
+Includes KernelSU v0.9.5 + NetHunter HID + WiFi-injection patches.
+
+| Subsystem | State |
 |---|---|
-| 📱 **Flash on Narzo 30A daily** | `releases/AETHER_RMX3171_4.14_legacy-20260511.zip` (4.14, hardware works) |
-| 🧪 **Research / contribute / A16-native** | `releases/AETHER_RMX3171_6.6_A16-20260512.zip` (6.6, base only) |
+| Boot/storage (eMMC) | ✅ MTK MSDC built-in |
+| Display LCM panels | ✅ all 6 Realme stock panels in tree |
+| Touch | ✅ multi-vendor probe |
+| Charging | ✅ MT6370 PMIC + 6000 mAh battery profile |
+| WiFi/BT (Connsys MT6768) | ✅ full MTK BSP driver |
+| FM (MT6631) | ✅ in tree |
+| Camera ISP + sensors | ✅ 23 sensor candidates compiled |
+| Mali GPU | ✅ G52 MC1 driver |
+| Audio (mt6768mt6358 + sia81xx) | ✅ in tree |
+| Sensors (accel/gyro/mag/alsps/step) | ✅ MTK SCP framework |
+| Fingerprint (Goodix) | ✅ kernel driver |
+| Thermal | ✅ MTK legacy + chassis temp |
 
-See [RELEASES.md](RELEASES.md) for hashes + flash instructions + what works.
+Flash, test, use.
 
----
+### Track 2: 6.6.129 ACK — modern base with REAL MT6768 hardware ports
 
-## What this is
+Built from Android Common Kernel 6.6.129 + AETHER MT6768 ports/configs.
+Strategy: **port-from-4.14** where mainline doesn't have MT6768, **enable-mainline**
+where it does.
 
-A clean Linux 6.6.50 kernel source tree configured specifically for the
-Realme Narzo 30A (RMX3171). Built on top of Samsung's open-source A055F
-(Galaxy A05M) BSP — which uses the **same MT6768 SoC** as RMX3171 —
-plus RMX3171-specific overlays for hardware identity, device tree, and
-A16 vendor tree.
+#### Built-in to vmlinux (1976 MTK symbols)
 
-## Target device
-
-| Field | Value |
-|---|---|
-| Marketing name | Realme Narzo 30A |
-| Model | RMX3171 |
-| SoC | MediaTek Helio G85 (MT6769Z marketing / **MT6768 kernel platform**) |
-| Board family | oppo6769 / RM6769 |
-| Display | 720 × 1600 LCD |
-| RAM | 4 GB / 3 GB |
-| Storage | eMMC 5.1 (dynamic partitions, super.img) |
-| Battery | 6000 mAh |
-| Connsys | CONSYS_MT6768 (0x6768) WiFi + BT |
-| FM | MT6631 |
-| Fingerprint | Goodix (active) / Egis / FPC drivers shipped |
-
-## Why Samsung A055F base?
-
-Samsung's Galaxy A05M (SM-A055F) ships with **Linux 6.6.50** on the exact
-same MT6768 SoC family. Their open-source kernel release includes a full
-MTK BSP for MT6768 with modern Android 16 features (DMABUF heaps, io_uring,
-BPF_LSM, native KPROBES). This makes it the **best modern base** for
-porting to RMX3171 — same SoC, modern Android 16 / 6.6 substrate.
-
-## Build status (honest)
-
-| Stage | State |
-|---|---|
-| Linux 6.6.50 base | ✅ builds clean (clang-14 + LLD-14) |
-| `Image.gz` (uncompressed-then-gzip ARM64) | ✅ ~12 MB |
-| `mt6768-rmx3171.dtb` with RMX3171 specifics | ✅ ~191 KB (pinctrl + battery merged) |
-| **RMX3171 pinctrl dtsi** | ✅ extracted from stock A11 boot dtb (95 groups, raw MTK pinmux) |
-| **RMX3171 battery profile dtsi** | ✅ extracted from stock A11 boot dtb (4 batteries × 5 temps, gm30 fuelgauge curves) |
-| KernelSU v3.2.4 | ✅ integrated (CONFIG_KSU=y) |
-| ~118 generic Linux modules | ✅ built (.ko) |
-| MTK BSP modules (camera, GPU, charger, sensor hub, connsys, etc.) | ⚠️ in-progress — requires Samsung Kleaf/Bazel build (~10 GB Android prebuilts) |
-| LCM panel binding | ⚠️ stock loader auto-selects from CUSTOM_KERNEL_LCM list at runtime |
-| Real device boot test | ❌ not yet |
-
-This base is **not yet a flashable Android 16 production kernel for daily
-use on RMX3171**. It is the build infrastructure + scaffolding for one.
-Full MTK BSP integration requires Samsung's Kleaf/Bazel build with
-Android prebuilts (~10 GB download). See [BUILD.md](docs/BUILD.md).
-
-## Latest build artifacts (2026-05-12)
-
-Built clean from Samsung A055F kernel-6.6.50 base + AETHER RMX3171 overlays.
-
-| File | Size | SHA-256 |
+| Subsystem | Source | Symbols |
 |---|---|---|
-| `out/arch/arm64/boot/Image` (raw ARM64 ELF) | 27.06 MB | (in vmlinux-debug) |
-| `out/arch/arm64/boot/Image.gz` | 11.98 MB | |
-| `out/arch/arm64/boot/Image.gz-dtb` | 12.17 MB | `c07493dac1b72...` |
-| `out/arch/arm64/boot/dts/mediatek/mt6768-rmx3171.dtb` | 191 KB | `c0b68e915d28e...` |
-| `AnyKernel3/AETHER_RMX3171_6.6_A16-20260512.zip` (flashable) | **57.16 MB** | `5ebb911b17d10...` |
-| `.ko` modules built | 118 files | |
+| **pinctrl-mt6768** | **AETHER port 4.14→6.6 (88-line C + 2750-line H, 5 API fixes)** | 4 init + handlers |
+| MSDC eMMC | Mainline 6.6 mtk-sd | 113 |
+| MTK DRM display framework | Mainline 6.6 drm/mediatek | 53 |
+| MT6358 PMIC | Mainline 6.6 mfd/mt6397 + regulator | 33 |
+| MT6370 charger + MFD | Mainline 6.6 mfd/mt6370 | 76 |
+| MTK IOMMU | Mainline | 34 |
+| MTK UART APDMA | Mainline | 23 |
+| MTK HSDMA | Mainline | 23 |
+| xhci-mtk USB host | Mainline | 21 |
+| AuxADC | Mainline | 14 |
+| MTK TPHY USB PHY | Mainline | 7 |
+| MT6358 audio codec | Mainline ASoC | 4+ |
+| MTK SCP firmware loader | Mainline (now =m) | scp_init |
 
-DTB now embeds RMX3171-specific data extracted from stock A11 boot dtb:
-- 95 pinctrl pin groups (raw MTK pinmux from `realme_rmx3171_dump-*/bootdts`)
-- Battery fuelgauge profile: 4 batteries × 5 temperatures × 100 SOC points
-- Goodix fingerprint compatible binding
-- Charger stock values (2.05 A AC, 3.2 A input, 4.35 V CV, full JEITA table)
-- soundcard `mt6768mt6358` + sia81xx smart PA
+#### Built as loadable .ko modules (149 total in v4)
 
-## Repository layout
+| Module | Function |
+|---|---|
+| `pinctrl-mt6768.ko` | GPIO via our port |
+| `wlan_drv_gen4m.ko` + `wmt_drv.ko` + `wmt_chrdev_wifi.ko` | **Internal MT6768 WiFi (4.14→6.6 port)** |
+| `btmtk.ko` + `btmtksdio.ko` + `btmtkuart.ko` | Bluetooth MTK |
+| `goodix_ts.ko` | Touchscreen Goodix |
+| `mt76*.ko` × 8 | External USB WiFi |
+| `mt6360_charger.ko` + `tcpci_mt6360.ko` | Charger + Type-C |
+| `panel-novatek-nt36523.ko` + `nt36672a.ko` + `himax-hx8394.ko` | Display panels |
+| `mtk_scp.ko` + `mtk_scp_ipi.ko` | Sensor hub firmware loader |
+| `edt-ft5x06.ko` | Focaltech touch |
+| `mediatek-cpufreq-hw.ko` | CPU frequency scaling |
+| `wireguard.ko` | NetHunter VPN |
+| KernelSU | Built-in (=y) |
+
+#### What's still missing in 6.6 track
+
+| Missing | Why | Workaround |
+|---|---|---|
+| clk-mt6768 (full clk subsystem) | 3365-line 4.14 driver not ported | Use bootloader-configured clocks; deferred |
+| RMX3171 panel driver (ilt9881h / nt36525b) | Not in mainline | Generic mipi-dsi binding; runtime LCM select; user can port from 4.14 |
+| Battery gm30 fuelgauge | Not ported | Charger reports voltage; SOC estimation rough |
+| sia81xx smart PA | Audio amp | Audio works without it; lower volume |
+| FM radio MT6631 | Not ported | No FM radio app |
+| Camera ISP + imgsensor | Massive 4.14 port | No camera (preview/photo) |
+| Mali GPU avalon | Vendor BSP | No 3D acceleration |
+| Modem ECCCI | Massive 4.14 port | No cellular |
+| RMX3171-specific touch (Focaltech / Realme variant) | Vendor blob | Try goodix_ts.ko + edt-ft5x06.ko |
+| RMX3171 fingerprint (Goodix Berlin) | Vendor blob | DTS node ready; needs HAL |
+| Real device boot test | No device in loop | Community testing needed |
+
+## Latest artifacts (2026-05-12)
+
+```
+File:    releases/AETHER_RMX3171_6.6_MT6768-20260512v4.zip
+Size:    102.77 MB (zipped, ~150 MB uncompressed)
+SHA-256: ca8670d2d110df42786f889918f012bdaf92282526a267a3e01da5249c681d8b
+Kernel:  Linux 6.6.129-AETHER-X-RMX3171-A16+
+Image:   33.87 MB raw, 13.83 MB gz, 14.02 MB gz-dtb
+Modules: 149 .ko files
+MTK syms: 1976 in vmlinux
+Configs: 68 MTK-related
+```
+
+## Repository structure
 
 ```
 aether-rmx3171-6.6/
-├── kernel-6.6/                Linux 6.6.50 base (stage from Samsung A055F)
-├── device-modules/            Samsung MTK 6.6 BSP (stage from Samsung A055F)
-├── vendor-modules/            Mali GPU + vendor (stage from Samsung A055F)
-├── aether-rmx3171/            AETHER overlay — RMX3171 deltas (only this is original)
-│   ├── configs/aether_rmx3171_overlay.config
-│   ├── dts/mt6768-rmx3171.dts
+├── aether-rmx3171/
+│   ├── configs/aether_rmx3171_overlay.config  AETHER overlay (KSU/NetHunter/A16)
+│   ├── dts/mt6768-rmx3171.dts                 RMX3171 board DTS
+│   ├── dts/cust_mt6768_rmx3171_pinctrl.dtsi   95 stock pin groups extracted
+│   ├── dts/rmx3171_bat_profile.dtsi           4-battery × 5-temp fuelgauge profile
 │   ├── modules/vendor_boot.modules.load
 │   ├── modules/vendor_dlkm.modules.load
-│   └── build/
-├── device/realme/RMX3171/     Android 16 device tree (BoardConfig, fstab, init)
-├── vendor/realme/RMX3171/     Proprietary blob staging area (user provides)
-├── KernelSU/                  KernelSU v3.2.4 (fetched at build time)
-├── AnyKernel3/                AK3 packaging (fetched at build time)
+│   ├── build/                                  build + stage + restore scripts
+│   └── ports/                                  4.14→6.6 driver ports
+│       ├── pinctrl/pinctrl-mt6768.c           ported driver (5 API fixes)
+│       ├── pinctrl/pinctrl-mtk-mt6768.h       data tables 2750 lines
+│       ├── configs/aether_mtk_enable.config   68 MTK config enable overlay
+│       └── README.md                           port docs + roadmap
+├── device/realme/RMX3171/                     A16 device tree (126 files)
+├── vendor/realme/RMX3171/                     proprietary blob staging area
+├── releases/                                   gitignored — distribute via GH Releases
 ├── docs/
-│   └── 01_hardware_truth.md   Canonical RMX3171 hardware evidence
-└── scripts/
-    └── sync_samsung_base.sh   Stage Samsung A055F kernel into this tree
+│   ├── 01_hardware_truth.md                   canonical RMX3171 evidence
+│   ├── BUILD.md
+│   └── KLEAF_BUILD.md                          alternate Samsung Kleaf path
+├── scripts/sync_samsung_base.sh
+├── .github/                                    CI + issue templates
+├── README.md  CONTRIBUTING.md  RELEASES.md  LICENSE
+└── .gitignore
 ```
 
 ## Quick start (build)
 
-### 1. Stage Samsung base (required — not in this repo)
+### Easiest path — community 6.6 build (rsuntkOrgs/a05m-kernel-6.6-master pattern)
 
 ```bash
-# Download SM-A055F_15_Opensource.zip from https://opensource.samsung.com
-unzip SM-A055F_15_Opensource.zip
-export SAMSUNG_KERNEL_ROOT=/path/to/SM-A055F_15_Opensource/Kernel
-bash scripts/sync_samsung_base.sh
-```
+# 1. Clone the community ACK 6.6 + MTK base
+git clone https://github.com/rsuntkOrgs/a05m-kernel-6.6-master
+cd a05m-kernel-6.6-master
 
-### 2. Build (plain make path — base kernel only)
+# 2. Apply AETHER overlays (this repo)
+cp <AETHER-repo>/aether-rmx3171/ports/pinctrl/pinctrl-mt6768.c \
+   kernel-6.6/drivers/pinctrl/mediatek/
+cp <AETHER-repo>/aether-rmx3171/ports/pinctrl/pinctrl-mtk-mt6768.h \
+   kernel-6.6/drivers/pinctrl/mediatek/
+cp <AETHER-repo>/aether-rmx3171/ports/configs/aether_mtk_enable.config .
 
-```bash
-bash aether-rmx3171/build/build_aether_6_6.sh
-```
+# 3. Patch Kconfig + Makefile (see ports/README.md)
 
-Produces:
-- `out/arch/arm64/boot/Image.gz-dtb`
-- `out/arch/arm64/boot/dts/mediatek/mt6768-rmx3171.dtb`
-- ~120 generic Linux `.ko` modules
+# 4. Apply config overlay
+bash kernel-6.6/scripts/kconfig/merge_config.sh -m -O $OUT $OUT/.config \
+    aether_mtk_enable.config
 
-### 3. Build full MTK BSP (Kleaf/Bazel path — required for working hardware)
-
-```bash
-# Needs Android prebuilts (~10 GB)
-# See docs/KLEAF_BUILD.md
-cd <samsung-kleaf-workspace>
-DEFCONFIG_OVERLAYS='mt6768_overlay.config RMX3171.config' \
-MODE=user KERNEL_VERSION=kernel-6.6 \
+# 5. Build (community script handles ACK + KernelSU + AnyKernel)
 bash build_kernel.sh
 ```
 
-### 4. Package for flash
+### Full Samsung Kleaf path (advanced, for ~500 module BSP)
 
-```bash
-bash scripts/package_anykernel.sh
-# Output: out/AETHER_X_RMX3171_6.6-<date>.zip
-```
+See `docs/KLEAF_BUILD.md`. Needs Samsung A055F source from
+https://opensource.samsung.com + ~5 GB Android prebuilts.
 
 ## Features
 
-- **Linux 6.6.50** with A16-ready features:
-  - BPF_LSM, io_uring, KPROBES, DMABUF heaps, inline encryption
-  - MODULE_SIG_HASH=sha256, MODULE_COMPRESS_ZSTD
-- **KernelSU** v3.2.4 — kprobe-based root
-- **NetHunter-friendly** kernel config:
-  - USB HID gadget (configfs)
-  - WireGuard
-  - External USB WiFi adapters: RT3070/RT5572, AR9271, MT76, RTL8XXXU
-  - mac80211 monitor/injection support
-- **Magisk co-existence**:
-  - OVERLAY_FS, namespaces, devtmpfs
-  - init.aether_root.rc hooks for safe co-mounting
-- **A16 vendor tree**:
-  - boot v4 + vendor_boot + init_boot + vendor_dlkm split
-  - fstab with FBE v2 + ICE + fsverity
-  - VINTF + sepolicy carryover from RMX3171 A11 stock
-
-## Hardware support status
-
-| Subsystem | Status |
-|---|---|
-| Display (LCD 720×1600) | ⚠️ DTS values from stock; MTK display module needs Kleaf build |
-| Touch | ⚠️ multi-vendor probe in DTS; controller drivers need Kleaf |
-| Charging (MT6370) | ⚠️ stock values in DTS; charger module needs Kleaf |
-| Battery (6000 mAh GM30) | ⚠️ profile arrays to be extracted from stock dtb |
-| WiFi/BT (CONSYS_MT6768) | ⚠️ DTS ready; connsys driver needs Kleaf + firmware blobs |
-| FM (MT6631) | ⚠️ same |
-| Camera ISP + sensors | ⚠️ needs first-boot probe + Kleaf MTK imgsensor |
-| GPU (Mali G52 MC1) | ⚠️ Mali avalon module needs Kleaf + Realme EGL blobs |
-| Fingerprint (Goodix) | ⚠️ DTS node ready; HAL needs stock blob |
-| Audio (mt6768mt6358 + sia81xx) | ⚠️ DTS routing ready; ASoC modules need Kleaf |
-| Sensors (accel/gyro/mag/alsps) | ⚠️ MTK SCP sensor hub modules need Kleaf |
-| Thermal (LVTS) | ⚠️ modern framework available; zone names match A16 HAL |
-
-## Roadmap
-
-- [x] Linux 6.6.50 base building clean
-- [x] KernelSU integration
-- [x] NetHunter kernel configs
-- [x] Magisk co-existence init
-- [x] RMX3171 hardware truth document
-- [x] AnyKernel3 packaging
-- [x] A16 vendor tree skeleton (BoardConfig, fstab, init)
-- [ ] Full Samsung Kleaf/Bazel build adopted
-- [ ] RMX3171 board target in Kleaf (replace S96818AA1)
-- [ ] All MTK BSP modules building (.ko set)
-- [ ] First boot on physical RMX3171
-- [ ] Display + touch + charging
-- [ ] WiFi + BT + audio + sensors + fingerprint
-- [ ] GPU + camera + thermal
-- [ ] Stable daily-driver
-- [ ] CI build pipeline (GitHub Actions)
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Pull requests welcome for:
-- Pinctrl dtsi extraction from RMX3171 stock dtb fragments
-- Battery profile array extraction
-- Camera sensor identification (need device boot log)
-- MTK BSP build glue / Kleaf integration
-- Vendor blob shim libraries
-- A16 sepolicy patches
+- **Linux 6.6.129 ACK** + AETHER overlays
+- **KernelSU** (kprobe root, built-in)
+- **NetHunter-ready**: USB HID gadget, mac80211 monitor, WireGuard, 4× external USB WiFi adapter families
+- **Magisk co-existence**: OVERLAY_FS, namespaces, init hooks
+- **A16 features**: BPF_LSM, io_uring, KPROBES, DMABUF heaps, ICE, sha256 module sig, MODULE_COMPRESS_ZSTD
+- **RMX3171 hardware data**: pinctrl 95 groups + battery 4×5 fuelgauge from stock A11 boot dtb
+- **Pstore + ramoops** enabled (helps debug boot failures)
 
 ## License
 
-GPL-2.0-only. See [LICENSE](LICENSE).
+GPL-2.0-only. See `LICENSE`.
 
-This repository contains:
-- AETHER overlay code (original) — GPL-2.0
-- KernelSU integration (fetched from upstream) — GPL-2.0
-- AnyKernel3 packaging (fetched from upstream) — see AK3 license
-- **Samsung A055F base and MediaTek BSP are NOT redistributed.** They must be
-  downloaded separately from https://opensource.samsung.com and staged via
-  `scripts/sync_samsung_base.sh`. Samsung's open-source release is also GPL-2.0.
+- AETHER overlay code (this repo) — GPL-2.0
+- KernelSU (fetched at build) — GPL-2.0
+- AnyKernel3 (fetched at build) — see AK3 license
+- Samsung A055F base / community a05m-kernel-6.6 — GPL-2.0 (not redistributed here)
+- Realme 4.14 source (used as porting reference) — GPL-2.0
 
 ## Credits
 
-- Linux kernel community
-- MediaTek for MT6768 BSP
-- Samsung Open Source for A055F kernel release
-- KernelSU project (tiann)
-- AnyKernel3 (osm0sis)
-- Kali NetHunter project
-- Realme / OPPO 4.14 kernel sources (used as hardware evidence reference)
+Linux kernel community · MediaTek MT6768 BSP · Samsung Open Source · rsuntkOrgs
+(a05m-kernel-6.6 community build) · KernelSU (tiann) · AnyKernel3 (osm0sis) ·
+Kali NetHunter · Realme/OPPO 4.14 kernel sources (evidence reference)
 
 ## Disclaimer
 
-**Experimental software. Use at your own risk.** Flashing custom kernels can
-brick your device. Make a stock recovery backup first. The maintainers are
-not responsible for damage.
+**Experimental. Flash at own risk.** Backup stock recovery first. Track 1
+(4.14) is the safer bet for daily use — it has proven working hardware
+drivers compiled. Track 2 (6.6) is the modern future-facing build but
+needs community device-test feedback before claiming daily-driver status.
 
-This kernel is **not yet** verified to boot on Realme Narzo 30A. Do not
-flash on a daily-driver until the maintainer or community confirms a
-successful boot test in a release announcement.
+No maintainer has flashed this on physical RMX3171 yet. If you do — please
+submit boot logs via GitHub Issues using the `boot_failure` or
+`hardware_broken` templates.
