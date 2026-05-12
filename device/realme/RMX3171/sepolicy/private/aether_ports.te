@@ -1,0 +1,27 @@
+# AETHER RMX3171 — sepolicy for ported kernel drivers.
+#
+# Adds /dev nodes + sysfs paths for AETHER ported drivers.
+# Loads after base device sepolicy.
+
+# === Goodix fingerprint /dev/goodix_fp ===
+type goodix_fp_device, dev_type;
+
+allow hal_fingerprint_default goodix_fp_device:chr_file rw_file_perms;
+allow hal_fingerprint_default self:netlink_socket create_socket_perms_no_ioctl;
+
+# Permit vendor HAL to read kernel chip info via ioctl GF_IOC_CHIP_INFO
+allowxperm hal_fingerprint_default goodix_fp_device:chr_file ioctl {
+    0x67  # GF_IOC_MAGIC 'g'
+};
+
+# === sia81xx PA via tinyalsa control nodes ===
+allow hal_audio_default audio_device:chr_file rw_file_perms;
+
+# === NT36525B touch firmware load ===
+allow ueventd vendor_firmware_file:file r_file_perms;
+allow vendor_init vendor_firmware_file:dir r_dir_perms;
+
+# === AETHER simple gauge sysfs nodes ===
+type sysfs_aether_gauge, sysfs_type, fs_type;
+allow system_app sysfs_aether_gauge:file r_file_perms;
+allow healthd    sysfs_aether_gauge:file r_file_perms;

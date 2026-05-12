@@ -9,5 +9,7 @@ obj-$(CONFIG_AETHER_PANEL_ILT9881H_RMX3171) += panel/panel-ilt9881h-rmx3171.o
 obj-$(CONFIG_AETHER_SIMPLE_GAUGE)           += power/aether-simple-gauge.o
 obj-$(CONFIG_AETHER_SND_SOC_SIA81XX)        += audio/sia81xx-aether.o
 obj-$(CONFIG_AETHER_PINCTRL_MT6768)         += pinctrl/pinctrl-mt6768.o
+obj-$(CONFIG_AETHER_TOUCHSCREEN_NT36525B)   += input/nt36525b-rmx3171.o
+obj-$(CONFIG_AETHER_GOODIX_FP)              += misc/goodix-fp-rmx3171.o
 
 ccflags-y += -I$(srctree)/drivers/pinctrl/mediatek

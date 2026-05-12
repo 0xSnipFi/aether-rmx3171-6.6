@@ -46,4 +46,24 @@ config AETHER_PINCTRL_MT6768
 	  2750-line pin data tables. Required for GPIO/pinmux on
 	  RMX3171.
 
+config AETHER_TOUCHSCREEN_NT36525B
+	tristate "Novatek NT36525B touchscreen (RMX3171)"
+	depends on I2C && INPUT
+	select INPUT_MT
+	help
+	  Slim port of Realme 4.14 Novatek NT36525B touch driver
+	  (~3800 LoC → ~450 LoC) focused on I2C probe, multi-touch
+	  report, FW load via request_firmware. Drops vendor proc nodes,
+	  ESD protect, gesture wake-up, factory-mode self-test.
+	  Say M to build as nt36525b-rmx3171.ko.
+
+config AETHER_GOODIX_FP
+	tristate "Goodix GF3208 fingerprint (RMX3171)"
+	depends on SPI && NET
+	help
+	  Slim port of Realme 4.14 Goodix GF3208 fingerprint driver
+	  (~2500 LoC → ~400 LoC). SPI char-dev + netlink event channel.
+	  IOCTL ABI preserved verbatim (vendor HAL depends on exact codes).
+	  Say M to build as goodix-fp-rmx3171.ko.
+
 endmenu

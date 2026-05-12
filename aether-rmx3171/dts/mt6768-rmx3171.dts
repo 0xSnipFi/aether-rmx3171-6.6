@@ -230,6 +230,47 @@
 };
 
 /* =========================================================================
+ * Touchscreen — Novatek NT36525B 720x1600 (AETHER slim port).
+ * I2C bus + reset GPIO + IRQ from stock A11 dtbdump.
+ * =========================================================================
+ */
+&i2c1 {
+	status = "okay";
+
+	rmx3171_touch: touchscreen@62 {
+		compatible = "novatek,nt36525b", "realme,rmx3171-touch";
+		reg = <0x62>;
+		interrupt-parent = <&pio>;
+		interrupts = <0 2>;	/* GPIO0, IRQF_TRIGGER_FALLING */
+		reset-gpios = <&pio 23 0>;	/* GPIO_ACTIVE_HIGH */
+		vdd-supply = <&dsv_pos>;
+		vio-supply = <&mt6358_vio18>;
+		status = "okay";
+	};
+};
+
+/* =========================================================================
+ * Fingerprint — Goodix GF3208 on SPI.
+ * AETHER slim port — see aether-rmx3171/ports/misc/goodix-fp-rmx3171.c.
+ * IOCTL ABI preserved verbatim from 4.14 — vendor HAL depends on exact codes.
+ * =========================================================================
+ */
+&spi1 {
+	status = "okay";
+
+	rmx3171_fp: fingerprint@0 {
+		compatible = "goodix,gf3208", "mediatek,goodix-fp";
+		reg = <0>;
+		spi-max-frequency = <8000000>;
+		fp-reset-gpios = <&pio 156 1>;	/* GPIO_ACTIVE_LOW */
+		fp-irq-gpios   = <&pio 1 0>;	/* GPIO_ACTIVE_HIGH */
+		interrupt-parent = <&pio>;
+		interrupts = <1 1>;		/* rising edge */
+		status = "okay";
+	};
+};
+
+/* =========================================================================
  * USB — Type-C via RT1711H. PD disabled per stock.
  * Evidence: HW truth §11.
  * Note: mt6370 typec label not in Samsung's mt6768.dts — bound via

@@ -14,6 +14,9 @@
 # Biometrics
 /system/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.1-service\.RMX3171                          u:object_r:hal_fingerprint_RMX3171_exec:s0
 
+# AETHER ported driver /dev nodes
+/dev/goodix_fp                  u:object_r:goodix_fp_device:s0
+
 /vendor/bin/init\.oppo\.fingerprint\.sh                                                                  u:object_r:hal_fingerprint_RMX3171_exec:s0
 
 # Misc

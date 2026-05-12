@@ -23,6 +23,10 @@ AnyKernel3/
 build*.exit
 .build-logs/
 
+# Private signing keys — production AVB
+aether-rmx3171/keys/*.pem
+aether-rmx3171/keys/*.priv
+
 # Toolchain
 toolchain/
 prebuilts/

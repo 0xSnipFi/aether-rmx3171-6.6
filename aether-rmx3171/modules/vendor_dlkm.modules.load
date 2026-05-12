@@ -8,11 +8,13 @@
 # `make modules` produces real filenames.
 
 # ============================================================
-# AETHER ported drivers (Phase 2+3)
+# AETHER ported drivers (Phase 2+3+5)
 # ============================================================
 panel-ilt9881h-rmx3171.ko
 aether-simple-gauge.ko
 sia81xx-aether.ko
+nt36525b-rmx3171.ko
+goodix-fp-rmx3171.ko
 
 # ============================================================
 # MTK common infrastructure
