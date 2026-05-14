@@ -60,3 +60,5 @@ Thumbs.db
 # Release artifacts (large zips — distribute via GitHub Releases page)
 releases/*.zip
 releases/*.img
+releases/*.sha256
+releases/*.md

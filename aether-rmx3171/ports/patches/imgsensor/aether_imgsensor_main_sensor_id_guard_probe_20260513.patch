@@ -1,0 +1,16 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor.c b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor.c
+index 0000000..0000000 100644
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor.c
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor.c
+@@ -57,8 +57,8 @@
+ #endif
+ 
+ #include "seninf_drv.h"
+ #ifdef __CONFIG_WING_CAM_CAL__
+ #include <linux/hardware_info.h>
+-kal_uint32 main_sensor_id = 0xffffffff;
+ #endif
++kal_uint32 main_sensor_id = 0xffffffff;
+ static DEFINE_MUTEX(gimgsensor_mutex);
+ static DEFINE_MUTEX(gimgsensor_open_mutex);
+ 

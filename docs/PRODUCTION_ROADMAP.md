@@ -42,7 +42,7 @@ drivers/misc/mediatek/gpu/gpu_mali/mali_bifrost/
 └── mali-r25p0/   ★ MOST MODERN Bifrost — best candidate for 6.6 port
 ```
 
-RMX3171 = **Mali-G52 MC1 (Bifrost gen2)**. r25p0 is the right family.
+RMX3171 / Helio G85 = **Mali-G52 MC2 class (Bifrost gen2)**. r25p0 is the right family.
 Samsung vendor-modules' mali_avalon-r49p1 is **wrong** (Valhall = G77+).
 The 4.14 r25p0 driver can be ported to 6.6 KMI by porting r25 → r34 conventions.
 
@@ -137,13 +137,13 @@ Must complete before flashing.
 
 | Task | LoC / files | Effort | Status |
 |---|---|---|---|
-| **dtbo build** — `scripts/build/pack_dtbo.sh` (already drafted) + test compile mt6768-rmx3171.dtbo | ~50 lines script | 4 h | ⚠️ script exists, needs test |
-| **system_dlkm partition** — add to BoardConfigA16.mk, split modules.load | 20 lines | 2 h | ❌ pending |
-| **bootconfig.img** — add BOARD_BOOTCONFIG kvs, generate at build | 30 lines | 4 h | ❌ pending |
-| **KMI allowlist** — extract after first stable kernel build | ~5000 syms auto-generated | 4 h | ⚠️ placeholder |
-| **vbmeta production keys** — generate, document, swap from test keys | n/a | 2 h | ❌ pending |
-| **AVB sign pipeline** — `scripts/release/sign_vbmeta.sh` | ~80 lines | 4 h | ❌ pending |
-| **fstab.mt6768.a16 audit** — verify system_dlkm + metadata_csum_seed flags | review | 1 h | review only |
+| **dtbo build** - `scripts/build/pack_dtbo.sh` | script + dtbo output | 4 h | source done; syntax/static checked |
+| **system_dlkm/vendor_dlkm logical partitions** - stock-GPT path | `BoardConfigA16Legacy.mk` | 2 h | source done |
+| **bootconfig.img** - GKI-v4 path only | n/a for stock RMX3171 | 0 h | not used on stock boot-header-v2 |
+| **KMI allowlist** - extract after stable kernel build | `aether-rmx3171/abi/abi_gki_aarch64_aether` | 4 h | file present; regenerate after ABI changes |
+| **vbmeta production keys** - generate outside git | scripts + docs | 2 h | tooling present; real private key still user-owned |
+| **AVB sign pipeline** - stock-v2 aware `sign_vbmeta.sh` | script | 4 h | source done; syntax checked |
+| **fstab.mt6768.a16 audit** - non-A/B stock path | review | 1 h | source done; no slotselect |
 
 **Total Phase 1: ~21 h (3 days solo).** Output: bootable shell on physical device.
 
@@ -215,7 +215,7 @@ Switch from aetherx gen4m port → Samsung vendor-modules/connectivity tree.
 | Task | Effort | Approach |
 |---|---|---|
 | **Port Mali r25p0 Bifrost → 6.6** | 80 h | Source: 4.14 `drivers/misc/mediatek/gpu/gpu_mali/mali_bifrost/mali-r25p0/`. Target: vendor-modules/mediatek/kernel_modules/gpu/ but **replace mali_avalon-r49p1 with mali_bifrost-r25p0**. Adapt platform/mt6768 glue. ~50K LoC mostly stable kernel API. Expected fixes: drm_legacy → drm_dma_helper, get_user_pages signature, vmalloc_user gone in 6.6. |
-| **OR** alternative: panfrost mainline | 100 h | Mainline `drivers/gpu/drm/panfrost/` is open-source Mali driver. Supports Bifrost. Less performant than proprietary but free of vendor dependency. Need: G52 MC1 quirks (already partially upstreamed by Collabora). |
+| **OR** alternative: panfrost mainline | 100 h | Mainline `drivers/gpu/drm/panfrost/` is open-source Mali driver. Supports Bifrost. Less performant than proprietary but free of vendor dependency. Need: G52 MC2-class quirks and Android userspace testing. |
 | **Match Mali userspace blob** | 8 h | `vendor/lib*/egl/libGLES_mali.so` from stock RMX3171 expects specific kernel ABI. r25p0 kernel ↔ r25p0 userspace. Extract from stock. |
 | **GPU governor (mtk_gpufreq)** | 16 h | device-modules has `drivers/gpu/mediatek/gpufreq_v1/`. Use existing. |
 | **Build + benchmark** | 16 h | Run `glmark2-es2`, `geekbench compute` to verify 3D works. |

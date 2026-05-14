@@ -1,0 +1,35 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/camera_hw/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/camera_hw/Makefile
+new file mode 100644
+--- /dev/null
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/camera_hw/Makefile
+@@ -0,0 +1,15 @@
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 MediaTek Inc.
++
++IMGSENSOR_SUBDRV_OBJ := \
++	$(subdrv-rpath)/regulator/regulator.o \
++	$(subdrv-rpath)/gpio/gpio.o \
++	$(subdrv-rpath)/mclk/mclk.o \
++	$(subdrv-rpath)/imgsensor_cfg_table.o \
++
++ifeq ($(CONFIG_MTK_IMGSENSOR_ISP3_M), m)
++$(eval $(MTK_PLATFORM_KO)-objs += $(IMGSENSOR_SUBDRV_OBJ))
++else ifeq ($(CONFIG_MTK_IMGSENSOR_ISP3_M), y)
++obj-$(CONFIG_MTK_IMGSENSOR_ISP3_M) += $(IMGSENSOR_SUBDRV_OBJ)
++endif
++
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+@@ -70,7 +70,10 @@ ifneq ($(project_drv),)
+ $(foreach drv, $(project_drv), $(eval $(call add_subdrv,camera_project/$(MTK_SENSOR_PROJECT)/$(drv))))
+ endif
+ 
+-ifeq (,$(wildcard $(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/camera_project/$(MTK_SENSOR_PROJECT)/camera_hw))
++ifeq ($(COMMON_VERSION),v1_1)
++subdir-ccflags-y += -I$(IMGSENSOR_DRIVER_PATH)/common/$(COMMON_VERSION)/camera_hw
++$(eval $(call add_subdrv,../common/$(COMMON_VERSION)/camera_hw))
++else ifeq (,$(wildcard $(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/camera_project/$(MTK_SENSOR_PROJECT)/camera_hw))
+ subdir-ccflags-y += -I$(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/camera_hw
+ $(eval $(call add_subdrv,camera_hw))
+ ifneq ($(project_drv),)

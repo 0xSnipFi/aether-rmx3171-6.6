@@ -1,0 +1,11 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+@@ -37,6 +37,7 @@ subdir-ccflags-y += \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/common/$(COMMON_VERSION)/camera_hw \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/../inc \
+ 	-I$(DEVICE_MODULES_PATH)/drivers/misc/mediatek/include \
++	-I$(DEVICE_MODULES_PATH)/drivers/misc/mediatek/cam_cal/inc \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/ \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/seninf/ \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/isp6s/seninf/ \

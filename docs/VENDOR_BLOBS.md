@@ -7,17 +7,23 @@ are equal. This doc tells you which to extract first.
 
 ### Boot-critical (won't boot without)
 
-Pull these from stock `vendor.img` + `vendor_dlkm.img` + `vendor_boot.img`
-before first flash:
+Pull these from stock `vendor.img` / `odm.img` / recovery ramdisk before first
+flash. Stock RMX3171 does not have physical `vendor_boot` or `vendor_dlkm`
+partitions.
 
 | File | Path on stock | Why |
 |---|---|---|
-| `WIFI_RAM_CODE_MT6768.bin` | `/vendor/firmware/` | gen4m WiFi probe |
-| `BT_RAM_CODE_MT6631.bin` | `/vendor/firmware/` | bluetooth chip |
-| `GPS_FW_MT6631.bin` | `/vendor/firmware/` | GPS combo |
-| `mt6358-codec.bin` | `/vendor/firmware/` | audio DSP coefficients |
-| `nvram_config_*.bin` | `/vendor/nvdata/` | calibration backups (NV) |
-| `WIFI_NVRAM_MT6768.bin` | `/vendor/firmware/` | per-device WiFi calib |
+| `WIFI_RAM_CODE_soc1_0_1a_1.bin` | `/vendor/firmware/` | gen4m WiFi probe |
+| `soc1_0_ram_wifi_1a_1_hdr.bin` | `/vendor/firmware/` | WiFi firmware header |
+| `soc1_0_ram_bt_1a_1_hdr.bin` | `/vendor/firmware/` | Bluetooth firmware header |
+| `soc1_0_ram_mcu_1a_1_hdr.bin` | `/vendor/firmware/` | connsys MCU firmware header |
+| `soc1_0_patch_mcu_1a_1_hdr.bin` | `/vendor/firmware/` | connsys MCU patch header |
+| `md1img.img` | `/vendor/firmware/`, stock dump root, or physical `md1img` image mirror | modem firmware image; required before ECCCI can boot modem |
+| `md1dsp.img` | `/vendor/firmware/` or stock dump root mirror | modem DSP firmware; required for baseband bring-up. Current RMX3171 block-by-name dump has no physical `md1dsp` partition |
+| `APDB_MT6768_S01__W2044*` | `/vendor/etc/apdb/` | modem database / APDB for RIL and modemdbfilter |
+| `mtkfusionrild` + `libmtk-ril.so` | `/vendor/bin/hw/`, `/vendor/lib64/` | MTK RIL service and vendor radio userspace |
+| OPLUS radio/IMS/appradio blobs | `/vendor/etc/vintf/`, `/odm/`, `/system_ext/` | VoLTE/IMS and Realme radio framework glue |
+| `nvram_config_*.bin` | `/vendor/nvdata/` or `/nvdata/` | calibration backups (NV) |
 
 ### Display panel-specific
 
@@ -37,9 +43,11 @@ before first flash:
 | `vendor/lib*/hw/audio.primary.mt6768.so` | audio HAL |
 | `vendor/lib*/libaudiocompensationfilter*.so` | output EQ |
 
-### Camera (NO camera kernel driver = these don't help)
+### Camera
 
-3457 files include ~600 camera blobs. Skip for now.
+Camera blobs are useful now because the 6.6 tree packages experimental ISP3
+kernel modules. They are still not enough by themselves; camera preview/photo
+needs the ISP3 modules, DTS clocks/regulators, sensor tuple, and physical logs.
 
 ### GPU userspace
 
@@ -50,7 +58,8 @@ before first flash:
 | `vendor/lib*/hw/gralloc.mt6768.so` | gralloc HAL (uses Mali allocator) |
 | `vendor/lib*/hw/hwcomposer.mt6768.so` | display composer |
 
-(No kernel Mali r34/r38 ported = userspace falls back to swiftshader.)
+Panfrost is the current open-source 6.6 path. Proprietary Mali userspace blobs
+must match any future Bifrost DDK port; do not advertise Vulkan 1.3 on G52.
 
 ### Fingerprint
 
@@ -60,53 +69,36 @@ before first flash:
 | `vendor/etc/fingerprint_*.conf` | sensor config |
 | `gxfp_config.bin` | tuning |
 
-Need kernel `goodix_fp.ko` ported first.
+Need `goodix-fp-rmx3171.ko` loaded and matching TEE/HAL enrollment logs.
 
-### Cellular (skip — no modem driver)
+### Cellular
 
-`md1img.img`, `md1dsp.img`, `modem_*`, `*RIL*` — all skip.
+Do not skip cellular blobs for A16 bring-up. ECCCI/CCCI modules are packaged,
+but cellular needs modem firmware and matching userspace:
+
+- `md1img.img`
+- `md1dsp.img`
+- radio/RIL/IMS vendor blobs
+- `/nvdata`, `/nvram`, `/nvcfg` calibration
 
 ## Extraction script — `scripts/extract_blobs.sh`
 
+The committed script is the source of truth:
+
 ```bash
-#!/usr/bin/env bash
-# Mount stock vendor.img and pull listed files.
-# Usage: extract_blobs.sh <path-to-stock-vendor.img>
-
-set -e
-VND=$1
-[ -f "$VND" ] || { echo "Usage: $0 stock-vendor.img"; exit 1; }
-
-MNT=$(mktemp -d)
-sudo mount -o ro,loop "$VND" "$MNT"
-
-OUT=~/aether-rmx3171-6.6/vendor/realme/RMX3171/proprietary
-mkdir -p "$OUT"
-
-# Boot-critical only
-for f in \
-    firmware/WIFI_RAM_CODE_MT6768.bin \
-    firmware/BT_RAM_CODE_MT6631.bin \
-    firmware/GPS_FW_MT6631.bin \
-    firmware/mt6358-codec.bin \
-    firmware/WIFI_NVRAM_MT6768.bin \
-    nvdata/nvram_config_*.bin; do
-    src="$MNT/$f"
-    if [ -f "$src" ]; then
-        dest="$OUT/firmware/$(basename $f)"
-        mkdir -p "$(dirname $dest)"
-        cp -v "$src" "$dest"
-    else
-        echo "MISSING in stock: $f"
-    fi
-done
-
-sudo umount "$MNT"
-rmdir "$MNT"
-echo "[+] Boot-critical blobs in $OUT/"
+scripts/extract_blobs.sh <stock-vendor.img-or-mounted-dir> [stock-root-dir]
 ```
 
-(Not yet committed — TODO: add to `scripts/extract_blobs.sh`.)
+It stages files into both:
+
+- `vendor/realme/RMX3171/proprietary/...` for the Android vendor makefiles
+- `aether-rmx3171/firmware/...` for kernel bring-up and log triage
+
+The script explicitly has a `modem firmware - do not skip` section for
+`vendor/firmware/md1img.img` and `vendor/firmware/md1dsp.img`, then copies
+RIL/IMS/APDB/OPLUS radio blobs. If a stock dump stores `md1img.img` or
+`md1dsp.img` outside vendor, pass the dump root as the second argument so the
+script can find the physical-partition image mirrors by basename.
 
 ## Legal note
 

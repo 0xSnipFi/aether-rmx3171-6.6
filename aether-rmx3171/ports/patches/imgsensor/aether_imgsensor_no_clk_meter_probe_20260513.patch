@@ -1,0 +1,23 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/seninf_clk.c b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/seninf_clk.c
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/seninf_clk.c
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/seninf_clk.c
+@@ -402,6 +402,9 @@ unsigned int seninf_clk_get_meter(struct SENINF_CLK *pclk, unsigned int clk)
+  *	}
+  */
+ #ifdef SENINF_CLK_CONTROL_workaround//SENINF_CLK_CONTROL
++#ifdef NO_CLK_METER
++	return 0;
++#endif
+ 	/* workaround */
+ 	mt_get_ckgen_freq(1);
+ 
+@@ -417,6 +420,9 @@ unsigned int seninf_clk_get_meter(struct SENINF_CLK *pclk, unsigned int clk)
+ 	else
+ 		return 0;
+ #else
++#ifdef NO_CLK_METER
++	return 0;
++#endif
+ 	if (clk < 64)
+ 		return mt_get_ckgen_freq(clk);
+ 	else

@@ -9,10 +9,15 @@ PRODUCT_MANUFACTURER := realme
 
 PRODUCT_GMS_CLIENTID_BASE := android-realme
 
+PRODUCT_SHIPPING_API_LEVEL := 35
+PRODUCT_TARGET_VNDK_VERSION := 35
+
 BUILD_FINGERPRINT := alps/vnd_oppo6769/oppo6769:11/RP1A.200720.011/1623809323039:user/release-keys
 PRODUCT_BUILD_PROP_OVERRIDES += \
     BuildDesc="vnd_oppo6769-user 11 RP1A.200720.011 1623809323039 release-keys" \
     BuildFingerprint=$(BUILD_FINGERPRINT) \
+    ro.product.first_api_level=35 \
+    ro.vendor.build.version.sdk=35 \
     DeviceName=RMX3171 \
     DeviceProduct=RMX3171 \
     SystemDevice=RMX3171 \

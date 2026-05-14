@@ -9,12 +9,27 @@
 **MT6768 / Helio G85 SoC · 6000 mAh · 18W Quick Charge · 720×1600 HD+**
 **Linux 6.6.50 ACK base + 4.14 legacy track.**
 
+## Current production target
+
+The RMX3171/Narzo 30A stock partition table is non-A/B and boot-header-v2.
+The real-device Android 16 path in this repo now defaults to:
+
+- Linux 6.6 kernel packaged through the stock boot.img flow
+- physical dtbo.img
+- no physical vendor_boot or init_boot claim
+- vendor_dlkm/system_dlkm as logical super partitions for full ROM builds
+- modules staged in the AnyKernel zip for kernel-only recovery tests
+
+Set `AETHER_BOOT_HEADER_VERSION=4` only for PGPT-remap/emulator experiments.
+Do not advertise true certified GKI on stock RMX3171 hardware; this tree is a
+custom 6.6 Android 16 bring-up that follows GKI/KMI practices where possible.
+
 > Two release tracks. Pick based on goal:
 >
 > - 📱 **Daily-use flashable** → `AETHER_RMX3171_4.14_legacy-*.zip`
 >   (4.14.238, full MTK BSP, 634 MTK symbols, proven hardware)
 > - 🧪 **Modern A16 base** → `AETHER_RMX3171_6.6_MT6768-*.zip`
->   (6.6.50 ACK, 1976 MTK symbols, KernelSU, 8 real driver ports)
+>   (6.6.50 ACK, KernelSU, 117 packaged modules, AETHER visible-hardware ports)
 >
 > **Before flashing read [`docs/FLASHING.md`](docs/FLASHING.md).**
 > Track 2 is **untested on device**. If you boot it, post log via
@@ -37,7 +52,7 @@ Includes KernelSU v0.9.5 + NetHunter HID + WiFi-injection patches.
 | WiFi/BT (Connsys MT6768) | ✅ full MTK BSP driver |
 | FM (MT6631) | ✅ in tree |
 | Camera ISP + sensors | ✅ 23 sensor candidates compiled |
-| Mali GPU | ✅ G52 MC1 driver |
+| Mali GPU | ✅ G52 MC2-class Bifrost driver |
 | Audio (mt6768mt6358 + sia81xx) | ✅ in tree |
 | Sensors (accel/gyro/mag/alsps/step) | ✅ MTK SCP framework |
 | Fingerprint (Goodix) | ✅ kernel driver |
@@ -45,13 +60,13 @@ Includes KernelSU v0.9.5 + NetHunter HID + WiFi-injection patches.
 
 Flash, test, use.
 
-### Track 2: 6.6.129 ACK — modern base with REAL MT6768 hardware ports
+### Track 2: 6.6.50 ACK — Android 16 source-ready candidate
 
-Built from Android Common Kernel 6.6.129 + AETHER MT6768 ports/configs.
-Strategy: **port-from-4.14** where mainline doesn't have MT6768, **enable-mainline**
+Built from Samsung A055F Linux 6.6.50 + AETHER MT6768/RMX3171 ports/configs.
+Strategy: **port-from-4.14/4.19** where mainline doesn't have MT6768, **enable-mainline**
 where it does.
 
-#### Built-in to vmlinux (1976 MTK symbols)
+#### Built-in to vmlinux / generated config proof
 
 | Subsystem | Source | Symbols |
 |---|---|---|
@@ -69,22 +84,20 @@ where it does.
 | MT6358 audio codec | Mainline ASoC | 4+ |
 | MTK SCP firmware loader | Mainline (now =m) | scp_init |
 
-#### Built as loadable .ko modules (149 total in v4)
+#### Source-backed modules in the latest v7 release
 
 | Module | Function |
 |---|---|
-| `pinctrl-mt6768.ko` | GPIO via our port |
-| `wlan_drv_gen4m.ko` + `wmt_drv.ko` + `wmt_chrdev_wifi.ko` | **Internal MT6768 WiFi (4.14→6.6 port)** |
-| `btmtk.ko` + `btmtksdio.ko` + `btmtkuart.ko` | Bluetooth MTK |
-| `goodix_ts.ko` | Touchscreen Goodix |
-| `mt76*.ko` × 8 | External USB WiFi |
-| `mt6360_charger.ko` + `tcpci_mt6360.ko` | Charger + Type-C |
-| `panel-novatek-nt36523.ko` + `nt36672a.ko` + `himax-hx8394.ko` | Display panels |
-| `mtk_scp.ko` + `mtk_scp_ipi.ko` | Sensor hub firmware loader |
-| `edt-ft5x06.ko` | Focaltech touch |
-| `mediatek-cpufreq-hw.ko` | CPU frequency scaling |
-| `wireguard.ko` | NetHunter VPN |
-| KernelSU | Built-in (=y) |
+| `panel-ilt9881h-rmx3171.ko` | RMX3171 ILT9881H panel slim port |
+| `nt36525b-rmx3171.ko` | RMX3171 Novatek NT36525B touch slim port |
+| `sia81xx-aether.ko` | RMX3171 SIA81xx speaker PA codec |
+| `aether-simple-gauge.ko` | 6000 mAh battery profile gauge fallback |
+| `goodix-fp-rmx3171.ko` | RMX3171 Goodix fingerprint slim port |
+| `mt6370-pe-rmx3171.ko` | MT6370 PE+ charging helper |
+| `fm-mt6631-aether.ko` | MT6631 FM radio slim port |
+| `ccci_*`, `ccmni.ko`, `cpif.ko`, `rps_perf.ko` | MTK ECCCI modem kernel module set |
+| `cfg80211.ko`, `mac80211.ko`, USB net modules | NetHunter/networking support |
+| KernelSU | Built-in (`CONFIG_KSU=y`) |
 
 #### What's still missing in 6.6 track
 
@@ -94,31 +107,32 @@ realistic 6-month plan to 100% daily-driver parity.
 
 Headline gaps (re-audited 2026-05-12):
 
-- **P0** boot integrity: dtbo build, system_dlkm partition, bootconfig.img, KMI allowlist
-- **P1** daily-use: panel-ilt9881h DRM port, touch NT36525B Novatek port, sia81xx audio amp, mt6370 PE+ charging, gm30 simple gauge
-- **P2** ⚠ feasibility revised: Mali Bifrost r25p0 (4.14 has it!), camera ISP3 (~12K LoC, hard but doable), modem ECCCI (~12K LoC + signed blobs), FP/FM/etc
+- **P0** boot integrity: dtbo/system_dlkm/bootconfig now build; KMI allowlist, production AVB keys, and physical boot proof still missing
+- **P1** daily-use: panel, touch, SIA81xx audio, PE+ charging, simple gauge, Goodix FP, and FM now build as AETHER modules but need RMX3171 hardware validation
+- **P2** ⚠ hard ports: Mali Bifrost G52 full 3D and MTK ISP3 camera remain unsolved; cellular has kernel modules but still needs DTS/firmware/RIL/IMS/SIM test
 - **P3** optional: clk-mt6768 (DTS workaround), vibrator, flashlight
 
 Realistic timeline:
-- **MVP daily-driver** (no cam/cell): 6 weeks solo / 3 weeks team
+- **MVP daily-driver** (no cam/cell): now gated mainly by physical boot/test iteration
 - **Full daily-driver**: 6 months solo / 3 months team
 
 Compiled-clean ≠ runs-on-device. Real boot test needed.
 
-7 port-task scaffolds with 4.14 source staged + playbooks under
-[`aether-rmx3171/ports/TODO/`](aether-rmx3171/ports/TODO/).
+Port-task scaffolds with 4.14/4.19 source staged + playbooks live under
+[`aether-rmx3171/ports/TODO/`](aether-rmx3171/ports/TODO/). Current status:
+[`docs/status/2026-05-13.md`](docs/status/2026-05-13.md).
 
-## Latest artifacts (2026-05-12)
+## Latest artifacts (2026-05-13)
 
 ```
-File:    releases/AETHER_RMX3171_6.6_MT6768-20260512v4.zip
-Size:    102.77 MB (zipped, ~150 MB uncompressed)
-SHA-256: ca8670d2d110df42786f889918f012bdaf92282526a267a3e01da5249c681d8b
-Kernel:  Linux 6.6.129-AETHER-X-RMX3171-A16+
-Image:   33.87 MB raw, 13.83 MB gz, 14.02 MB gz-dtb
-Modules: 149 .ko files
-MTK syms: 1976 in vmlinux
-Configs: 68 MTK-related
+File:    releases/AETHER_RMX3171_6.6_MT6768-20260513v7-pinctrl-sourcefix.zip
+SHA-256: b43a5022810cec86c14b6f3e9e0a2a7674c0e3af6012d4ed526ee692eefc5ef5
+DTBO:    releases/dtbo.img
+DTBO SHA-256: 7cf2a48edd7d8c01c9f5987434e19475f0798ba42308b9a424a5ef1274b41e5c
+Kernel:  Linux 6.6.50 Samsung/AETHER base
+Image:   27.08 MB raw, 12.00 MB gz, 12.20 MB gz-dtb
+Modules: 117 packaged .ko files
+Note:    untested on physical RMX3171
 ```
 
 ## Repository structure
@@ -130,7 +144,7 @@ aether-rmx3171-6.6/
 ├── aether-rmx3171/        ★ AETHER overlay (the only thing we own)
 │   ├── configs/             kernel .config fragments
 │   ├── dts/                 RMX3171 device-tree (270 + 462 + 106 lines)
-│   ├── modules/             vendor_boot + vendor_dlkm load lists
+│   ├── modules/             first-stage + vendor_dlkm + system_dlkm load lists
 │   ├── ports/               ports/pinctrl (done), ports/TODO/ (7 scaffolds)
 │   ├── abi/                 KMI allowlist (A16 GKI 2.0)
 │   ├── firmware/            blob staging (gitignored)
@@ -184,7 +198,7 @@ https://opensource.samsung.com + ~5 GB Android prebuilts.
 
 ## Features
 
-- **Linux 6.6.129 ACK** + AETHER overlays
+- **Linux 6.6.50 ACK** + AETHER overlays
 - **KernelSU** (kprobe root, built-in)
 - **NetHunter-ready**: USB HID gadget, mac80211 monitor, WireGuard, 4× external USB WiFi adapter families
 - **Magisk co-existence**: OVERLAY_FS, namespaces, init hooks
@@ -208,6 +222,7 @@ GPL-2.0-only. See `LICENSE`.
 |---|---|
 | [`docs/FLASHING.md`](docs/FLASHING.md) | Users — how to flash + recover |
 | [`docs/BOOT_FAILURE_TRIAGE.md`](docs/BOOT_FAILURE_TRIAGE.md) | When it won't boot |
+| [`docs/PARTITION_STRATEGY.md`](docs/PARTITION_STRATEGY.md) | Stock GPT + Android 16 logical dlkm strategy |
 | [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | Repo layout |
 | [`docs/MISSING.md`](docs/MISSING.md) | P0–P3 gap audit |
 | [`docs/PRODUCTION_ROADMAP.md`](docs/PRODUCTION_ROADMAP.md) | 6-month plan to full daily-driver |

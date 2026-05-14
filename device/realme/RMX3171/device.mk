@@ -4,10 +4,13 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
 $(call inherit-product-if-exists, vendor/realme/RMX3171/RMX3171-vendor.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/updatable_apex.mk)
 
-PRODUCT_SHIPPING_API_LEVEL := 29
-PRODUCT_EXTRA_VNDK_VERSIONS := 29
+PRODUCT_SHIPPING_API_LEVEL := 35
+PRODUCT_TARGET_VNDK_VERSION := 35
+# Keep older VNDK namespaces available for stock RMX3171 A11 vendor blobs and
+# libshims while the product itself launches as Android 16.
+PRODUCT_EXTRA_VNDK_VERSIONS := 29 30
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
-PRODUCT_BUILD_SUPER_PARTITION := false
+PRODUCT_BUILD_SUPER_PARTITION := true
 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 PRODUCT_ENABLE_UFFD_GC := true
@@ -22,10 +25,11 @@ PRODUCT_COPY_FILES += \
 
 # Init and fstab.
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/init/fstab.mt6768:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.mt6768 \
-    $(DEVICE_PATH)/init/fstab.mt6768:$(TARGET_COPY_OUT_RAMDISK)/fstab.mt6768 \
+    $(DEVICE_PATH)/init/fstab.mt6768.a16:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.mt6768 \
+    $(DEVICE_PATH)/init/fstab.mt6768.a16:$(TARGET_COPY_OUT_RAMDISK)/fstab.mt6768 \
     $(DEVICE_PATH)/init/init.mt6768.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.mt6768.rc \
     $(DEVICE_PATH)/init/init.mt6768.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.mt6768.usb.rc \
+    $(DEVICE_PATH)/init/init.aether_root.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.aether_root.rc \
     $(DEVICE_PATH)/init/init.connectivity.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.connectivity.rc \
     $(DEVICE_PATH)/init/init.modem.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.modem.rc \
     $(DEVICE_PATH)/init/init.sensor_1_0.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.sensor_1_0.rc \

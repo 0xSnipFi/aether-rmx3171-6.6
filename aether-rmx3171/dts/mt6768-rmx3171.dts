@@ -183,6 +183,8 @@
 
 /* sia81xx smart PA — Realme custom; bind to I2C bus from stock evidence */
 &i2c4 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 
 	rmx3171_sia81xx: sia81xx@1c {
@@ -202,6 +204,8 @@
  * =========================================================================
  */
 &dsi0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 
 	rmx3171_panel: panel@0 {
@@ -212,6 +216,16 @@
 		vsn-supply = <&dsv_neg>;
 		backlight = <&mtk_leds>;
 		status = "okay";
+	};
+};
+
+/* mt6370.dtsi names these child nodes but does not label them. Add labels so
+ * panel bias supplies can reference the existing regulator nodes.
+ */
+&mt6370 {
+	regulators {
+		dsv_pos: dsvpos {};
+		dsv_neg: dsvneg {};
 	};
 };
 
@@ -235,6 +249,8 @@
  * =========================================================================
  */
 &i2c1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 
 	rmx3171_touch: touchscreen@62 {
@@ -243,8 +259,8 @@
 		interrupt-parent = <&pio>;
 		interrupts = <0 2>;	/* GPIO0, IRQF_TRIGGER_FALLING */
 		reset-gpios = <&pio 23 0>;	/* GPIO_ACTIVE_HIGH */
-		vdd-supply = <&dsv_pos>;
-		vio-supply = <&mt6358_vio18>;
+		vdd-supply = <&mt_pmic_vio28_ldo_reg>;
+		vio-supply = <&mt_pmic_vio18_ldo_reg>;
 		status = "okay";
 	};
 };
@@ -256,6 +272,8 @@
  * =========================================================================
  */
 &spi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 
 	rmx3171_fp: fingerprint@0 {
@@ -268,6 +286,30 @@
 		interrupts = <1 1>;		/* rising edge */
 		status = "okay";
 	};
+};
+
+/* =========================================================================
+ * GPU - Mali-G52 MC2-class (Bifrost) open-source 3D path.
+ *
+ * Samsung's MT6768 base DTS describes this node as Valhall/Avalon, which is
+ * wrong for RMX3171. Panfrost supports Bifrost G52 in Linux 6.6 and probes
+ * via the generic arm,mali-bifrost compatible after reading the hardware ID.
+ *
+ * This is kernel-side enablement only. Android daily-driver 3D also requires
+ * userspace to use Mesa/Panfrost (or a separately ported matching Bifrost
+ * proprietary DDK). Do not claim stock libGLES_mali compatibility from this.
+ * =========================================================================
+ */
+&mali {
+	compatible = "arm,mali-bifrost";
+	interrupts =
+		<GIC_SPI 276 IRQ_TYPE_LEVEL_HIGH 0>,	/* JOB */
+		<GIC_SPI 275 IRQ_TYPE_LEVEL_HIGH 0>,	/* MMU */
+		<GIC_SPI 274 IRQ_TYPE_LEVEL_HIGH 0>,	/* GPU */
+		<GIC_SPI 277 IRQ_TYPE_LEVEL_HIGH 0>;	/* EVENT */
+	interrupt-names = "job", "mmu", "gpu", "event";
+	clocks = <&topckgen CLK_TOP_MFG_SEL>;
+	status = "okay";
 };
 
 /* =========================================================================

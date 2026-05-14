@@ -1443,14 +1443,14 @@ odm/etc/vendor_wifi_rus_config.xml
 -odm/etc/vintf/manifest/manifest_oplus_thermalmntcfg.xml
 -odm/etc/vintf/manifest/manifest_oplus_touch.xml
 odm/etc/wifi/txpowerctrl.cfg
--odm/framework/vendor.oplus.hardware.appradio-V1.0-java.jar
+odm/framework/vendor.oplus.hardware.appradio-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.charger-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.cryptoeng-V1.0-java.jar
--odm/framework/vendor.oplus.hardware.ims-V1.0-java.jar
+odm/framework/vendor.oplus.hardware.ims-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.oplusSensor-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.orms-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.orms.ormsHalService-V1.0-java.jar
--odm/framework/vendor.oplus.hardware.radio-V1.0-java.jar
+odm/framework/vendor.oplus.hardware.radio-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.stability.oplus_project-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.thermalmntcfg-V1.0-java.jar
 -odm/framework/vendor.oplus.hardware.touch-V1.0-java.jar
@@ -1516,13 +1516,13 @@ odm/lib64/vendor.oplus.hardware.thermalmntcfg@1.0.so
 odm/lib64/vendor.oplus.hardware.touch@1.0.so
 odm/lib64/vendor.oplus.hardware.transmessage@1.0.so
 odm/lib64/vendor.oplus.hardware.wifi.supplicant@2.0.so
--recovery/ramdisk/vendor/etc/vintf/manifest/oplus_appradio_device_manifest.xml
--recovery/ramdisk/vendor/etc/vintf/manifest/oplus_radio_device_manifest.xml
+recovery/ramdisk/vendor/etc/vintf/manifest/oplus_appradio_device_manifest.xml
+recovery/ramdisk/vendor/etc/vintf/manifest/oplus_radio_device_manifest.xml
 -recovery/ramdisk/vendor/etc/vintf/manifest/oplus_wifi_supplicant_device.xml
 recovery/ramdisk/vendor/lib64/vendor.oplus.hardware.wifi.supplicant@2.0.so
 vendor/etc/oplus_avb.pubkey
--vendor/etc/vintf/manifest/oplus_appradio_device_manifest.xml
--vendor/etc/vintf/manifest/oplus_radio_device_manifest.xml
+vendor/etc/vintf/manifest/oplus_appradio_device_manifest.xml
+vendor/etc/vintf/manifest/oplus_radio_device_manifest.xml
 -vendor/etc/vintf/manifest/oplus_wifi_supplicant_device.xml
 vendor/lib/liboplus_audio_config.so
 vendor/lib64/liboplus_audio_config.so
@@ -1557,6 +1557,9 @@ vendor/lib64/hw/power.mt6768.so
 # QMI
 
 # Radio
+# Modem firmware must not be skipped for A16 radio bring-up.
+vendor/firmware/md1img.img
+vendor/firmware/md1dsp.img
 
 # Samsung
 
@@ -2498,7 +2501,7 @@ system_ext/oppoex/public.libraries-oppoex.txt
 -system_ext/priv-app/MtkCarrierConfig/MtkCarrierConfig.apk
 -system_ext/priv-app/OppoExSystemService/OppoExSystemService.apk
 -system_ext/priv-app/OppoLauncher/OppoLauncher.apk
--system_ext/priv-app/OppoSimSettings/OppoSimSettings.apk
+system_ext/priv-app/OppoSimSettings/OppoSimSettings.apk
 -system_ext/priv-app/OppoWirelessSettings/OppoWirelessSettings.apk
 -system_ext/priv-app/Settings/Settings.apk.aa
 -system_ext/priv-app/Settings/Settings.apk.ab

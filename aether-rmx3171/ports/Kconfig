@@ -39,7 +39,8 @@ config AETHER_SND_SOC_SIA81XX
 
 config AETHER_PINCTRL_MT6768
 	bool "RMX3171 MT6768 pinctrl (ported from 4.14)"
-	depends on PINCTRL_MTK_PARIS
+	depends on ARCH_MEDIATEK && OF
+	select PINCTRL_MTK_PARIS
 	default y
 	help
 	  Ported MT6768 pinctrl driver from 4.14 (5 API adaptations) +
@@ -85,5 +86,14 @@ config AETHER_FM_MT6631
 	  IOCTL ABI preserved. Tune/seek/RSSI/mute via connsys bridge.
 	  RDS parsing is in userspace.
 	  Say M to build as fm-mt6631-aether.ko.
+
+config AETHER_MTK_MRDUMP_STUB
+	bool "AETHER MTK MRDUMP compatibility symbols"
+	default y
+	help
+	  Exports the minimal MRDUMP minidump helper symbols required by
+	  MediaTek out-of-tree modules when the full MTK AEE/IPANIC stack is
+	  not part of the Android 16 GKI-oriented build. The helper reports
+	  unsupported instead of registering extra panic dump files.
 
 endmenu

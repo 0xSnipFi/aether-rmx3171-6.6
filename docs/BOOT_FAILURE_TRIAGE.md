@@ -24,14 +24,15 @@ Watch for screen activity right after `fastboot reboot`:
 | Stuck on "POWERED BY REALME" splash | bootloader can't parse boot.img → wrong header version |
 | Black screen, no vibration | kernel didn't decompress or DT incompatible |
 | Black screen + vibration | kernel started, panic before display init |
-| Bootloop (Realme splash → off → Realme splash) | early panic — likely missing module in vendor_boot.modules.load |
+| Bootloop (Realme splash -> off -> Realme splash) | early panic; check first-stage module list and fstab |
 
 ### Boot.img header check
 ```bash
 unpack_bootimg --boot_img boot.img --out boot_extracted/
 cat boot_extracted/header_*
 ```
-Track 2 requires `header_version=4`. If it shows 2 → flashed wrong track.
+Stock RMX3171 production builds should use `header_version=2`. Header v4 is
+only for explicit PGPT-remap / emulator experiments.
 
 ## Stage 3 — capture kernel log via UART
 
@@ -58,17 +59,17 @@ Look for the LAST line printed before hang. That's your error.
 ## Stage 4 — common errors & fixes
 
 ### `Unable to mount /vendor`
-Cause: missing `mtk-sd.ko` or wrong fstab entry.
+Cause: storage driver, DT, or wrong fstab entry.
 Fix:
-1. Check `aether-rmx3171/modules/vendor_boot.modules.load` contains `msdc.ko`.
+1. Check storage is built-in or available before first-stage mount.
 2. Check `device/realme/RMX3171/init/fstab.mt6768.a16` has `/vendor` entry.
 3. Rebuild kernel, re-flash.
 
 ### `Kernel panic - not syncing: Attempted to kill init!`
 Cause: SELinux denying init transition or critical hal failed.
 Fix:
-1. Boot with `androidboot.selinux=permissive` (edit BoardConfigA16.mk
-   bootconfig temporarily).
+1. Boot with `androidboot.selinux=permissive` temporarily in the stock-v2
+   kernel cmdline.
 2. Capture dmesg → look for `avc: denied` entries.
 3. Add corresponding `allow` rule to `device/.../sepolicy/private/`.
 
@@ -83,7 +84,7 @@ Fix: confirm bootloader is Realme stock (NOT Samsung). Bootloader must
 init PMIC before kernel starts.
 
 ### `gen4m: firmware not found`
-Cause: missing `WIFI_RAM_CODE_MT6768.bin`.
+Cause: missing `WIFI_RAM_CODE_soc1_0_1a_1.bin` or matching connsys firmware.
 Fix: extract from stock vendor.img per `docs/VENDOR_BLOBS.md`.
 Place in `/vendor/firmware/` via vendor partition flash.
 

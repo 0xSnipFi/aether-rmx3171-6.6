@@ -1,219 +1,87 @@
-# AETHER RMX3171 — vendor_dlkm.modules.load
-#
-# Modules loaded after /vendor + /vendor_dlkm mount, during late init.
-# Order matters; group by subsystem.
-#
-# Naming convention follows Samsung 6.6 MTK driver build artifacts.
-# Mismatches with actual built .ko names get fixed iteratively after first
-# `make modules` produces real filenames.
+# AETHER RMX3171 late vendor/NetHunter modules.
+# Do not list aspirational MTK modules here unless they are built by the tree.
+8021q.ko
+cfg80211.ko
+mac80211.ko
+rfkill.ko
+bluetooth.ko
+hci_uart.ko
+btsdio.ko
+btbcm.ko
+btqca.ko
+rfcomm.ko
+hidp.ko
+usbnet.ko
+cdc_ether.ko
+cdc_eem.ko
+cdc_ncm.ko
+cdc-acm.ko
+usbserial.ko
+ftdi_sio.ko
+rtl8150.ko
+r8152.ko
+r8153_ecm.ko
+asix.ko
+ax88179_178a.ko
+aqc111.ko
+mii.ko
+ppp_generic.ko
+bsd_comp.ko
+ppp_deflate.ko
+ppp_mppe.ko
+pppox.ko
+pptp.ko
+slhc.ko
+l2tp_core.ko
+l2tp_ppp.ko
+9pnet.ko
+9pnet_fd.ko
+can.ko
+can-dev.ko
+can-raw.ko
+can-bcm.ko
+can-gw.ko
+vcan.ko
+slcan.ko
+wwan.ko
+# MediaTek modem / RIL stack. Build-proven, but still requires RMX3171
+# modem DTS nodes, firmware blobs, radio HAL, and physical SIM testing.
+rps_perf.ko
+ccci_util_lib.ko
+ccmni.ko
+ccci_auxadc.ko
+ccci_fsm_scp.ko
+ccci_ccif.ko
+ccci_dpmaif.ko
+ccci_cldma.ko
+ccci_md_all.ko
+cpif.ko
+tipc.ko
+diag.ko
+6lowpan.ko
+nhc_dest.ko
+nhc_fragment.ko
+nhc_hop.ko
+nhc_ipv6.ko
+nhc_mobility.ko
+nhc_routing.ko
+nhc_udp.ko
+ieee802154_6lowpan.ko
+ieee802154.ko
+ieee802154_socket.ko
+mac802154.ko
+softdog.ko
+leds-pwm.ko
+v4l2-flash-led-class.ko
 
-# ============================================================
-# AETHER ported drivers (Phase 2+3+5)
-# ============================================================
-panel-ilt9881h-rmx3171.ko
-aether-simple-gauge.ko
-sia81xx-aether.ko
-nt36525b-rmx3171.ko
-goodix-fp-rmx3171.ko
-mt6370-pe-rmx3171.ko
-fm-mt6631-aether.ko
-
-# ============================================================
-# MTK common infrastructure
-# ============================================================
-mtk_pmic_wrap.ko
-mtk_pmic_keys.ko
-mtk_aee.ko
-mtk_aee_aed.ko
-mtk_aee_hangdet.ko
-mtk_aee_mrdump.ko
-mtk_atf.ko
-mtk_log_store.ko
-mtk_btif.ko
-
-# ============================================================
-# Power / thermal / freq
-# ============================================================
-mtk_cpufreq_v1.ko
-mtk_cpuhotplug.ko
-mtk_cpuidle.ko
-mtk_mcdi.ko
-mtk_mcupm.ko
-mtk_spm.ko
-mtk_lpm.ko
-mtk_dvfsrc.ko
-mtk_ppm_v3.ko
-mtk_power_throttling.ko
-mtk_thermal_charger_cooling.ko
-mtk_thermal_cpu_isolate_cooling.ko
-
-# ============================================================
-# Reserved memory + DMA + IO
-# ============================================================
-mtk_memblock.ko
-mtk_memory_amms.ko
-mtk_mmstat.ko
-mtk_mmqos.ko
-mtk_mmdvfs.ko
-mtk_interconnect.ko
-
-# ============================================================
-# Trusty / TEE / Secure
-# ============================================================
-mtk_trusty.ko
-mtk_geniezone.ko
-mtk_pkvm_mgmt.ko
-mtk_pkvm_smmu.ko
-mtk_pkvm_tmem.ko
-
-# ============================================================
-# Charger PMIC (MT6370)
-# ============================================================
-mt6370_pmu.ko
-mt6370_pmu_charger.ko
-mt6370_pmu_fled.ko
-mt6370_pmu_bled.ko
-mt6370_pmu_ldo.ko
-mt6370_pmu_dsv.ko
-mtk_charger.ko
-mtk_battery_gm30.ko
-mtk_battery_metrics.ko
-
-# ============================================================
-# Type-C / USB-PD
-# ============================================================
-typec_rt1711h.ko
-mtk_tcpc_class.ko
-mtk_usb.ko
-mtk_usb_typec_u3_mux.ko
-
-# ============================================================
-# Connsys (WiFi/BT/FM/GPS) — MT6768 family
-# ============================================================
-connectivity_consys.ko
-connectivity_consys_mt6768.ko
-mtk_wlan.ko
-mtk_bt.ko
-mtk_fmradio.ko
-mtk_gps.ko
-
-# ============================================================
-# Sensor hub (Tinysys SCP)
-# ============================================================
-mtk_tinysys_scp.ko
-mtk_sensorhub.ko
-mtk_accelhub.ko
-mtk_gyrohub.ko
-mtk_maghub.ko
-mtk_alspshub.ko
-mtk_stepsignhub.ko
-mtk_pickuphub.ko
-mtk_glghub.ko
-mtk_orienthub.ko
-mtk_wakehub.ko
-mtk_motion_detect_hub.ko
-
-# ============================================================
-# Camera ISP + sensors
-# ============================================================
-mtk_cmdq.ko
-mtk_cmdq_v3.ko
-mtk_smi_ext.ko
-mtk_jpeg.ko
-mtk_imgsensor.ko
-mtk_camera_isp.ko
-mtk_camera_mem.ko
-mtk_cam_cal.ko
-mtk_cam_timesync.ko
-mtk_fdvt.ko
-mtk_lens.ko
-mtk_flashlight_core.ko
-mtk_flashlight_monet.ko
-rt_flashlight.ko
-
-# ============================================================
-# Display + Touch + LCM
-# ============================================================
-mtk_drm.ko
-mtk_lcm.ko
-mtk_fb.ko
-mtk_aal.ko
-mtk_disp_mutex.ko
-# Touch — multi-vendor probe via SPI2; only one will bind at runtime
-ts_chipone.ko
-ts_focaltech.ko
-ts_novatek.ko
-ts_omnivision.ko
-ts_gcore.ko
-
-# ============================================================
-# Fingerprint — Goodix primary, Egis + FPC inert
-# ============================================================
-fp_goodix.ko
-
-# ============================================================
-# Audio
-# ============================================================
-mtk_audio_ipi.ko
-snd_soc_mt6768_afe.ko
-snd_soc_mt6358.ko
-snd_soc_sia81xx.ko
-
-# ============================================================
-# GPU (Mali G52 MC1 on MT6768)
-# ============================================================
-mtk_gpu_ged.ko
-mtk_gpufreq_v1.ko
-mtk_gpu_eb.ko
-mali_avalon.ko
-
-# ============================================================
-# Modem (ECCCI bridge)
-# ============================================================
-mtk_eccci.ko
-mtk_md_ccmni.ko
-mtk_md_drv.ko
-
-# ============================================================
-# Misc / vendor extras
-# ============================================================
-mtk_accdet.ko
-mtk_pwm.ko
-mtk_leds.ko
-mtk_gpio.ko
-mtk_extcon.ko
-mtk_rtc.ko
-mtk_uarthub.ko
-
-# ============================================================
-# KernelSU — must load AFTER core init, BEFORE Magisk userspace daemon.
-# Built as =y per overlay config, so does NOT appear here, listed only for
-# documentation. (Bringing KSU =m would race su-daemon startup.)
-# ============================================================
-# kernelsu — built-in, no .ko
-
-# ============================================================
-# WireGuard (NetHunter VPN)
-# ============================================================
-wireguard.ko
-
-# ============================================================
-# External USB WiFi adapters (NetHunter monitor mode hardware)
-# ============================================================
-rt2x00lib.ko
-rt2800lib.ko
-rt2x00usb.ko
-rt2800usb.ko
-ath9k_htc.ko
-ath9k_common.ko
-ath9k_hw.ko
-rtl8xxxu.ko
-mt76.ko
-mt7601u.ko
-mt7663u.ko
-
-# ============================================================
-# ZRAM + zsmalloc (init.rc enables after /data mount)
-# ============================================================
-zsmalloc.ko
-zram.ko
+# MediaTek ISP3 camera bring-up chain. Build-proven in v10/v11, but still
+# requires RMX3171 physical camera logs before daily-driver camera claims.
+mtk-smi.ko
+mtk-smi-dbg.ko
+iommu_debug.ko
+irq-dbg.ko
+mtk-cmdq-drv-ext.ko
+cmdq_helper_inf.ko
+camera_isp_3_m.ko
+cam_qos_3.ko
+imgsensor_isp3_m.ko

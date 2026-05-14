@@ -15,6 +15,11 @@ REL="$REPO_ROOT/releases"
 
 mkdir -p "$REL"
 
+export AETHER_BUILD_CAMERA_EXPERIMENTAL="${AETHER_BUILD_CAMERA_EXPERIMENTAL:-1}"
+export AETHER_BOOT_HEADER_VERSION="${AETHER_BOOT_HEADER_VERSION:-2}"
+echo "[layout] RMX3171 stock GPT, boot header v${AETHER_BOOT_HEADER_VERSION}, dtbo partition, logical dlkm in super"
+echo "[camera] AETHER_BUILD_CAMERA_EXPERIMENTAL=$AETHER_BUILD_CAMERA_EXPERIMENTAL"
+
 echo "=== AETHER 6.6 release pipeline — $DATE $TAG ==="
 
 # ============================================================
@@ -31,8 +36,11 @@ bash "$REPO_ROOT/aether-rmx3171/build/build_aether_6_6.sh"
 # 2. dtbo.img
 # ============================================================
 echo "[2/6] dtbo build"
-bash "$REPO_ROOT/scripts/build/pack_dtbo.sh" "$OUT" || \
-    echo "WARN: dtbo build failed (non-fatal, can flash without)"
+bash "$REPO_ROOT/scripts/build/pack_dtbo.sh" "$OUT"
+[ -f "$OUT/dtbo.img" ] || {
+    echo "FAIL: dtbo.img not produced"
+    exit 1
+}
 
 # ============================================================
 # 3. Stage modules into AnyKernel3
@@ -40,13 +48,79 @@ bash "$REPO_ROOT/scripts/build/pack_dtbo.sh" "$OUT" || \
 echo "[3/6] Stage modules into AnyKernel3"
 AK3="$REPO_ROOT/AnyKernel3"
 [ -d "$AK3" ] || git clone https://github.com/osm0sis/AnyKernel3 "$AK3"
-mkdir -p "$AK3/modules/vendor_dlkm"
-find "$OUT" -name "*.ko" -exec cp {} "$AK3/modules/vendor_dlkm/" \;
+cp "$REPO_ROOT/scripts/release/anykernel-aether.sh" "$AK3/anykernel.sh"
+rm -rf "$AK3/modules"
+mkdir -p "$AK3/modules/vendor_dlkm" "$AK3/modules/vendor_boot" "$AK3/modules/system_dlkm"
+
+BUILT_MODULES="$OUT/aether-built-modules.txt"
+if [ -f "$OUT/modules.order" ]; then
+    sed 's/\.o$/.ko/' "$OUT/modules.order" | xargs -n1 basename > "$BUILT_MODULES"
+else
+    find "$OUT" -name "*.ko" -printf "%f\n" | sort > "$BUILT_MODULES"
+fi
+EXTERNAL_MODULES="$OUT/aether-external-modules.txt"
+if [ -f "$EXTERNAL_MODULES" ]; then
+    while IFS= read -r ext_module; do
+        [ -n "$ext_module" ] || continue
+        basename "$ext_module"
+    done < "$EXTERNAL_MODULES" >> "$BUILT_MODULES"
+    sort -u "$BUILT_MODULES" -o "$BUILT_MODULES"
+fi
+
+stage_module() {
+    local module="$1"
+    local dest="$2"
+    local src
+    src="$(find "$OUT" -name "$module" -print -quit)"
+    if [ -z "$src" ] && [ -f "$EXTERNAL_MODULES" ]; then
+        while IFS= read -r ext_module; do
+            [ "$(basename "$ext_module")" = "$module" ] || continue
+            src="$ext_module"
+            break
+        done < "$EXTERNAL_MODULES"
+    fi
+    [ -n "$src" ] || return 1
+    cp "$src" "$dest/"
+}
+
+stage_manifest() {
+    local manifest="$1"
+    local dest="$2"
+    local module
+    while IFS= read -r module; do
+        case "$module" in
+            ""|\#*) continue ;;
+        esac
+        if ! grep -Fxq "$module" "$BUILT_MODULES"; then
+            echo "FAIL: manifest requests missing module: $module"
+            exit 1
+        fi
+        stage_module "$module" "$dest"
+    done < "$manifest"
+}
+
+stage_manifest "$REPO_ROOT/aether-rmx3171/modules/vendor_boot.modules.load" "$AK3/modules/vendor_boot"
+stage_manifest "$REPO_ROOT/aether-rmx3171/modules/vendor_dlkm.modules.load" "$AK3/modules/vendor_dlkm"
+stage_manifest "$REPO_ROOT/aether-rmx3171/modules/system_dlkm.modules.load" "$AK3/modules/system_dlkm"
+
+# Keep every built module available in the zip for manual recovery/testing, but
+# only the validated manifests above are auto-loaded.
+while IFS= read -r module; do
+    [ -n "$module" ] || continue
+    [ -f "$AK3/modules/vendor_boot/$module" ] && continue
+    [ -f "$AK3/modules/system_dlkm/$module" ] && continue
+    [ -f "$AK3/modules/vendor_dlkm/$module" ] && continue
+    stage_module "$module" "$AK3/modules/vendor_dlkm"
+done < "$BUILT_MODULES"
+
 cp "$OUT/arch/arm64/boot/Image.gz-dtb" "$AK3/Image.gz-dtb"
+cp "$OUT/dtbo.img" "$AK3/dtbo.img"
 cp "$REPO_ROOT/aether-rmx3171/modules/vendor_boot.modules.load" \
    "$AK3/modules/vendor_boot.modules.load"
 cp "$REPO_ROOT/aether-rmx3171/modules/vendor_dlkm.modules.load" \
    "$AK3/modules/vendor_dlkm.modules.load"
+cp "$REPO_ROOT/aether-rmx3171/modules/system_dlkm.modules.load" \
+   "$AK3/modules/system_dlkm.modules.load"
 
 # ============================================================
 # 4. Pack AnyKernel zip
@@ -96,14 +170,30 @@ $(cat "$MANIFEST")
 ## What changed
 (populate from git log since last tag)
 
+## Boot layout
+
+Default target is the real RMX3171 stock GPT path:
+
+- boot header v2
+- kernel + ramdisk + DTB in boot.img / AnyKernel repack
+- physical dtbo partition
+- no physical vendor_boot or init_boot
+- vendor_dlkm/system_dlkm are logical partitions for full ROM builds, or
+  module folders inside this recovery flashable zip for kernel-only tests
+
 ## Honest hardware status
 
-See [docs/MISSING.md](../docs/MISSING.md) — only WiFi + BT + KSU + NetHunter
-confirmed working. Display/audio/camera/charging require P0–P1 items.
+See [docs/MISSING.md](../docs/MISSING.md). This artifact is compile/package
+proven, not hardware-proven. Kernel-side Panfrost, ECCCI modem modules, and
+optional ISP3 camera modules may be included depending on build flags, but
+display/touch/audio/charging/fingerprint/camera/radio still need RMX3171 logs.
 
 ## Flash
 \`\`\`
-fastboot flash boot $ZIP_NAME   # not yet, this is .zip — use recovery
+adb sideload $ZIP_NAME
+
+# Only when explicitly testing the generated DTBO:
+fastboot flash dtbo dtbo.img
 \`\`\`
 
 Use TWRP / OrangeFox to sideload the AnyKernel zip.

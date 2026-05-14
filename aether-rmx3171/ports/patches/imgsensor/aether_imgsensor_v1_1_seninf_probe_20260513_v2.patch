@@ -1,0 +1,54 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+@@ -12,8 +12,16 @@ IMGSENSOR_DRIVER_OBJ := \
+ 	../common/$(COMMON_VERSION)/imgsensor_i2c.o \
+ 	../common/$(COMMON_VERSION)/imgsensor_legacy.o \
+ 	../common/$(COMMON_VERSION)/imgsensor_proc.o \
+-	../common/$(COMMON_VERSION)/imgsensor_sensor_list.o \
+-	imgsensor_clk.o \
++	../common/$(COMMON_VERSION)/imgsensor_sensor_list.o
++
++ifeq ($(COMMON_VERSION),v1_1)
++IMGSENSOR_DRIVER_OBJ += \
++	../common/$(COMMON_VERSION)/imgsensor_pwr_seq.o \
++	../common/$(COMMON_VERSION)/seninf_clk.o \
++	../common/$(COMMON_VERSION)/seninf.o
++else
++IMGSENSOR_DRIVER_OBJ += \
++	imgsensor_clk.o
++endif
+ 
+ ifeq ($(CONFIG_MTK_IMGSENSOR_ISP3_M), m)
+ obj-$(CONFIG_MTK_IMGSENSOR_ISP3_M) += $(MTK_PLATFORM_KO).o
+@@ -28,6 +36,8 @@ subdir-ccflags-y += \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/../inc \
+ 	-I$(DEVICE_MODULES_PATH)/drivers/misc/mediatek/include \
+ 	-I$(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/ \
++	-I$(IMGSENSOR_DRIVER_PATH)/$(MTK_PLATFORM)/seninf/ \
++	-I$(IMGSENSOR_DRIVER_PATH)/isp6s/seninf/ \
+ 	-I$(DEVICE_MODULES_PATH)/drivers/i2c/busses/ \
+ 	-DNO_I2C_MTK -DNO_CLK_METER -DIMGSENSOR_USE_RPM -DIMGSENSOR_DFS_CTRL_ENABLE -DSENINF_USE_WAKE_LOCK
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/seninf/seninf_cfg.h b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/seninf/seninf_cfg.h
+new file mode 100644
+--- /dev/null
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/seninf/seninf_cfg.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * RMX3171 / MT6769Z ISP3 SENINF register map.
++ *
++ * Values are taken from the RMX3171-family 4.14 MT6785 imgsensor source.
++ * Do not replace these with ISP6S defaults; those use a different SENINF
++ * base and count.
++ */
++#ifndef __SENINF_CFG_H__
++#define __SENINF_CFG_H__
++#define SENINF_MAX_NUM 5
++#define SENINF_MAP_BASE_REG  0x1A040000
++#define SENINF_MAP_BASE_ANA  0x11C80000
++#define SENINF_MAP_BASE_GPIO 0xFFFFFFFF
++#define SENINF_MAP_LENGTH_REG  0xA000
++#define SENINF_MAP_LENGTH_ANA  0xC000
++#define SENINF_MAP_LENGTH_GPIO 0x00000
++#endif

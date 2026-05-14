@@ -9,7 +9,7 @@
  *   - netlink event channel to userspace HAL
  *
  * IOCTL ABI MUST be byte-equivalent with 4.14 gf_spi.h — vendor blob
- * `vendor/lib*/hw/fingerprint.gf3208.so` speaks these exact codes.
+ * The vendor fingerprint HAL speaks these exact codes.
  *
  * Userspace HAL: device/realme/RMX3171/fingerprint/ (Goodix BiometricsFingerprint
  * @2.1 service binds to /dev/goodix_fp).
@@ -30,6 +30,7 @@
 #include <linux/skbuff.h>
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
+#include <linux/types.h>
 #include <linux/uaccess.h>
 #include <net/sock.h>
 

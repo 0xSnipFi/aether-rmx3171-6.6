@@ -3,6 +3,12 @@
 Single repo, dual artifact (kernel + Android device tree). Designed to be
 git-cloneable + buildable on Ubuntu 22.04 + WSL.
 
+> 2026-05-14 note: the production RMX3171 path is stock boot-header-v2 +
+> physical dtbo. `BoardConfigA16Legacy.mk` is the default board overlay.
+> `BoardConfigA16.mk` / physical `vendor_boot` / physical `init_boot` are
+> PGPT-remap experiments only. Full ROM builds should add logical
+> `vendor_dlkm` / `system_dlkm` inside stock `super.img`.
+
 ```
 aether-rmx3171-6.6/
 │

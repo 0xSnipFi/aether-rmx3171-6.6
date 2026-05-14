@@ -44,7 +44,7 @@ odm                                                     /odm                    
 /dev/block/by-name/sspm_1                               /sspm_1                 emmc     defaults                                                                 defaults
 /dev/block/by-name/sspm_2                               /sspm_2                 emmc     defaults                                                                 defaults
 /dev/block/by-name/md1img                               /md1img                 emmc     defaults                                                                 defaults
-/dev/block/by-name/md1dsp                               /md1dsp                 emmc     defaults                                                                 defaults
+# RMX3171 block-by-name has md1img only. md1dsp.img is staged as vendor firmware.
 /dev/block/by-name/gz1                                  /gz1                    emmc     defaults                                                                 defaults
 /dev/block/by-name/gz2                                  /gz2                    emmc     defaults                                                                 defaults
 /dev/block/by-name/spmfw                                /spmfw                  emmc     defaults                                                                 defaults

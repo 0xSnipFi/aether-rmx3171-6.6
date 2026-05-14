@@ -1,0 +1,18 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/inc/kd_imgsensor.h b/device-modules/drivers/misc/mediatek/imgsensor/inc/kd_imgsensor.h
+--- a/device-modules/drivers/misc/mediatek/imgsensor/inc/kd_imgsensor.h
++++ b/device-modules/drivers/misc/mediatek/imgsensor/inc/kd_imgsensor.h
+@@ -756,6 +756,14 @@
+ #define W2C2519DEPCXT2_SENSOR_ID  0x0210
+ #define SENSOR_DRVNAME_W2C2519DEPCXT2_MIPI_MONO "w2c2519depcxt2_mipi_mono"
+ #define W2GC02M1DEPSJ_SENSOR_ID  0x02e0
++#ifndef OV13B10MAIN_SENSOR_ID
++#define OV13B10MAIN_SENSOR_ID OV13B10_SENSOR_ID
++#endif
++#define SENSOR_DRVNAME_OV13B10MAIN_MIPI_RAW "ov13b10main_mipi_raw"
++#ifndef S5K4H7FRONT_SENSOR_ID
++#define S5K4H7FRONT_SENSOR_ID S5K4H7_SENSOR_ID
++#endif
++#define SENSOR_DRVNAME_S5K4H7FRONT_MIPI_RAW "s5k4h7front_mipi_raw"
+ #define SENSOR_DRVNAME_W2GC02M1DEPSJ_MIPI_RAW "w2gc02m1depsj_mipi_raw"
+ #define W2GC02M1MICROCXT_SENSOR_ID  0x02e1
+ #define SENSOR_DRVNAME_W2GC02M1MICROCXT_MIPI_RAW "w2gc02m1microcxt_mipi_raw"

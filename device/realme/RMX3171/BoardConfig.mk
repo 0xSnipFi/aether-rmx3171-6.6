@@ -26,14 +26,19 @@ BUILD_BROKEN_ENFORCE_SYSPROP_OWNER := true
 
 # AVB for custom ROM builds.
 BOARD_AVB_ENABLE := true
+# Default to AOSP test key for local unlocked-bootloader builds. Production
+# releases must set AETHER_AVB_KEY_PATH to a private key generated outside git:
+#   AETHER_AVB_KEY_PATH=/secure/aether_avb_key.pem
+# Private keys are gitignored under aether-rmx3171/keys/.
+AETHER_AVB_KEY_PATH ?= external/avb/test/data/testkey_rsa2048.pem
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
 BOARD_AVB_VBMETA_SYSTEM := system
-BOARD_AVB_VBMETA_SYSTEM_KEY_PATH := external/avb/test/data/testkey_rsa2048.pem
+BOARD_AVB_VBMETA_SYSTEM_KEY_PATH := $(AETHER_AVB_KEY_PATH)
 BOARD_AVB_VBMETA_SYSTEM_ALGORITHM := SHA256_RSA2048
 BOARD_AVB_VBMETA_SYSTEM_ROLLBACK_INDEX := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_VBMETA_SYSTEM_ROLLBACK_INDEX_LOCATION := 1
 BOARD_AVB_VBMETA_VENDOR := vendor
-BOARD_AVB_VBMETA_VENDOR_KEY_PATH := external/avb/test/data/testkey_rsa2048.pem
+BOARD_AVB_VBMETA_VENDOR_KEY_PATH := $(AETHER_AVB_KEY_PATH)
 BOARD_AVB_VBMETA_VENDOR_ALGORITHM := SHA256_RSA2048
 BOARD_AVB_VBMETA_VENDOR_ROLLBACK_INDEX := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_VBMETA_VENDOR_ROLLBACK_INDEX_LOCATION := 2
@@ -133,3 +138,15 @@ WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 WIFI_HIDL_FEATURE_DUAL_INTERFACE := true
 
 TARGET_SCREEN_DENSITY := 480
+
+# AETHER targets Android 16 userspace, but RMX3171 stock boot chain is
+# boot-header-v2/non-A-B and has no physical vendor_boot/init_boot partitions.
+# Default to the real-device legacy boot layout so a normal lunch build does
+# not silently generate unflashable v4 images. Set AETHER_BOOT_HEADER_VERSION=4
+# only for a PGPT-remap or emulator-style experiment.
+AETHER_BOOT_HEADER_VERSION ?= 2
+ifeq ($(AETHER_BOOT_HEADER_VERSION),4)
+include $(DEVICE_PATH)/BoardConfigA16.mk
+else
+include $(DEVICE_PATH)/BoardConfigA16Legacy.mk
+endif

@@ -1,23 +1,30 @@
 # Android 16 bring-up notes — RMX3171
 
 What's specifically different about A16 (Android 16) vs RMX3171's stock A11.
-Use this as a checklist against `device/realme/RMX3171/BoardConfigA16.mk`.
+Use this as a checklist against `device/realme/RMX3171/BoardConfigA16Legacy.mk`.
+
+> 2026-05-13 correction: stock RMX3171 is non-A/B boot-header-v2 hardware
+> with physical `boot`, `dtbo`, and `super`, but no physical `vendor_boot` or
+> `init_boot`. The production default is now `BoardConfigA16Legacy.mk`, which
+> keeps stock boot flow and uses logical `vendor_dlkm` / `system_dlkm` inside
+> custom super for full ROM builds. `BoardConfigA16.mk` is retained only for
+> explicit boot-header-v4 / PGPT-remap experiments.
 
 ## A16 partition layout requirements
 
 | Partition | A16 status | Our state |
 |---|---|---|
-| `boot` | header v4, contains generic ramdisk + kernel | configured (`BOARD_BOOT_HEADER_VERSION := 4`) |
-| `init_boot` | A16 mandatory; first-stage init + ramdisk | configured (`BOARD_AVB_INIT_BOOT_*`) |
-| `vendor_boot` | header v4; vendor ramdisk + DTB | configured (`BOARD_AVB_VBMETA_VENDOR_BOOT`) |
-| `vendor_dlkm` | mounted by 2nd-stage init at /vendor_dlkm | configured (`BOARD_USES_VENDOR_DLKMIMAGE := true`) |
-| `system_dlkm` | A16 GKI-strict; mounted at /system_dlkm | **MISSING** (P0.2 in MISSING.md) |
-| `vendor_kernel_boot` | optional, kernel-only ramdisk | not used (kernel in boot) |
-| `dtbo` | overlay DT | **NOT BUILT** (P0.1 in MISSING.md) |
-| `vbmeta` | root of trust | configured with test keys |
-| `vbmeta_system` | chains system + system_ext + product | configured |
-| `vbmeta_vendor` | chains vendor + vendor_dlkm | configured |
-| `super` | dynamic partition holding all of above | configured (`BOARD_SUPER_PARTITION_SIZE := 6685720576`) |
+| `boot` | A16 GKI normally wants v4 | stock RMX3171 production path uses header v2 |
+| `init_boot` | A16 GKI normally uses it | not present on stock RMX3171; not default |
+| `vendor_boot` | A16 GKI normally uses it | not present on stock RMX3171; not default |
+| `vendor_dlkm` | mounted at /vendor_dlkm | logical partition inside custom super for full ROM builds |
+| `system_dlkm` | mounted at /system_dlkm | logical partition inside custom super for full ROM builds |
+| `vendor_kernel_boot` | optional | not used |
+| `dtbo` | overlay DT | physical stock partition; `pack_dtbo.sh` builds it |
+| `vbmeta` | root of trust | supported; production key path must be provided outside git |
+| `vbmeta_system` | chains system + system_ext + product + system_dlkm | configured in legacy board config |
+| `vbmeta_vendor` | chains vendor + odm + vendor_dlkm | configured in legacy board config |
+| `super` | dynamic partition | configured for custom Android 16 super builds |
 
 ## A16 init changes
 
@@ -25,7 +32,7 @@ A16 deprecates several things from older Android:
 
 | Deprecated | Replacement | Our state |
 |---|---|---|
-| `/proc/cmdline` for boot props | `/proc/bootconfig` from bootconfig.img | **MISSING bootconfig.img** (P0.4) |
+| `/proc/cmdline` for boot props | `/proc/bootconfig` from bootconfig.img | stock-v2 path keeps critical androidboot props on cmdline |
 | Legacy `init.rc` `class_start` racing | `class_start_async` | check `init.aether_root.rc` |
 | HIDL HAL (`@1.0`, `@2.0` services) | AIDL HAL (versioned interfaces) | fingerprint still HIDL — works in A16 with shim |
 | `/persist` as separate partition | mounted from super | confirm fstab.mt6768.a16 |
@@ -38,7 +45,7 @@ A16 expects:
 
 1. **GKI kernel image** (one Image, multiple vendor_dlkm) — we deviate
    (custom kernel build) but stay KMI-compatible.
-2. **KMI symbol allowlist** — `abi_gki_aarch64_aether` file. **MISSING.**
+2. **KMI symbol allowlist** — `aether-rmx3171/abi/abi_gki_aarch64_aether` exists; regenerate after every module ABI change.
 3. **APEX** updatable modules — `updatable_apex.mk` inherited; payload not
    yet validated.
 4. **dm-verity** on system + vendor — enabled via AVB.

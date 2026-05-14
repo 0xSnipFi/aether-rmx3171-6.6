@@ -1,0 +1,44 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor_sensor_list.c b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor_sensor_list.c
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor_sensor_list.c
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/imgsensor_sensor_list.c
+@@ -56,6 +56,14 @@ struct IMGSENSOR_SENSOR_LIST
+ #if defined(W2GC02M1MICROCXT_MIPI_RAW)
+ {W2GC02M1MICROCXT_SENSOR_ID, SENSOR_DRVNAME_W2GC02M1MICROCXT_MIPI_RAW, W2GC02M1MICROCXT_MIPI_RAW_SensorInit},
+ #endif
++#if defined(OV13B10MAIN_MIPI_RAW)
++{OV13B10MAIN_SENSOR_ID, SENSOR_DRVNAME_OV13B10MAIN_MIPI_RAW,
++	OV13B10MAIN_MIPI_RAW_SensorInit},
++#endif
++#if defined(S5K4H7FRONT_MIPI_RAW)
++{S5K4H7FRONT_SENSOR_ID, SENSOR_DRVNAME_S5K4H7FRONT_MIPI_RAW,
++	S5K4H7FRONT_MIPI_RAW_SensorInit},
++#endif
+ #if defined(W2BF2253LMICROSJ_MIPI_RAW)
+ {W2BF2253LMICROSJ_SENSOR_ID, SENSOR_DRVNAME_W2BF2253LMICROSJ_MIPI_RAW, W2BF2253LMICROSJ_MIPI_RAW_SensorInit},
+ #endif
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+@@ -65,6 +65,23 @@ $(foreach drv,$(subst $\",,$(CONFIG_CUSTOM_KERNEL_IMGSENSOR)),$(eval $(call FILT
+ CUSTOM_KERNEL_KNOWN_DRV := $(filter-out $(unknown_drv),$(subst $\",,$(CONFIG_CUSTOM_KERNEL_IMGSENSOR)))
+ CUSTOM_KERNEL_FLAGS := $(addprefix -D, $(shell echo $(CUSTOM_KERNEL_KNOWN_DRV) | tr a-z A-Z))
+ subdir-ccflags-y += $(CUSTOM_KERNEL_FLAGS)
++
++ifeq ($(COMMON_VERSION),v1_1)
++ifneq (,$(filter ov13b10main_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
++$(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/ov13b10main_mipi_raw/ov13b10mipiraw_Sensor.o)
++endif
++ifneq (,$(filter s5k4h7front_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
++$(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/s5k4h7front_mipi_raw/s5k4h7_mipiraw_Sensor.o)
++$(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/s5k4h7front_mipi_raw/s5k4h7otp.o)
++endif
++ifneq (,$(filter w2gc02m1depsj_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
++$(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/w2gc02m1depsj_mipi_raw/w2gc02m1depsj_mipi_raw_Sensor.o)
++endif
++ifneq (,$(filter w2gc02m1microcxt_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
++$(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.o)
++endif
++endif
+ 
+ ifneq ($(unknown_drv),)
+ $(info unknown_drv: $(unknown_drv))

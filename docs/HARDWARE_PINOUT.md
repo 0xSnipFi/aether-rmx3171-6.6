@@ -1,24 +1,24 @@
 # Realme Narzo 30A (RMX3171) hardware pinout
 
-SoC: MediaTek MT6768 (Helio G85). 12 nm, Cortex-A75 ×2 + A55 ×6, Mali-G52 MC1.
+SoC: MediaTek MT6768 (Helio G85). 12 nm, Cortex-A75 x2 + A55 x6, Mali-G52 MC2-class.
 
 ## Stock device specs (verified)
 
 | Item | Value | Source |
 |---|---|---|
 | SoC | MediaTek MT6768 (Helio G85) | Realme spec sheet |
-| CPU | 2× Cortex-A75 @ 2.0 GHz + 6× Cortex-A55 @ 1.8 GHz | |
-| GPU | Mali-G52 MC1 @ 950 MHz | |
+| CPU | 2x Cortex-A75 @ 2.0 GHz + 6x Cortex-A55 @ 1.8 GHz | |
+| GPU | Mali-G52 MC2-class Bifrost | Keep Vulkan 1.1-class expectations |
 | RAM | 4 GB LPDDR4X | 3 GB SKU also exists |
 | Storage | 64 GB eMMC 5.1 + microSD | |
 | Display | 6.5" HD+ 720×1600 IPS LCD, 60 Hz | ILT9881H (Truly/TXD variant) |
 | Touch | Novatek NT36525B | 10-finger capacitive, I²C @ 0x62 |
 | Battery | 6000 mAh Li-Po | |
 | Charging | **18W Quick Charge** (9V/2A via MTK PE+) | NOT 30W |
-| Camera rear | 13 MP main (ov13b10) + 2 MP macro (gc2375h) + 2 MP depth (ov02a1b) | |
+| Camera rear | 13 MP main + 2 MP B&W/depth | Sensor tuple must be confirmed from stock logs |
 | Camera front | 8 MP (s5k4h7) | |
 | Audio | MT6358 codec + sia81xx smart PA | speaker |
-| WiFi | 802.11 b/g/n single-band (MT6631 combo) | 2.4 GHz only |
+| WiFi | Dual-band 2.4/5 GHz (MTK combo) | `config_wifi5ghzSupport=true` in RMX3171 overlay |
 | Bluetooth | 5.0 (MT6631 combo) | |
 | GPS | A-GPS + GLONASS + BDS (MT6631 combo) | |
 | FM | yes (MT6631 combo) | RDS support |
@@ -135,15 +135,18 @@ Full clock list: `aether-rmx3171/ports/TODO/clk-mt6768/mt6768-clk.h`.
 ## Bootloader
 
 Realme LK (Little Kernel) custom build. Configures DRAM, PMIC, eMMC,
-display panel pre-init, then loads boot.img / vendor_boot.img.
+display panel pre-init, then loads stock boot-header-v2 `boot.img` and the
+physical `dtbo` partition. Stock RMX3171 does not have physical `vendor_boot`
+or `init_boot` partitions.
 
 Unlocked via `fastboot oem unlock` (requires Realme Bootloader Unlock
 Tool + 14-day waiting period on stock firmware).
 
 ## Modem firmware
 
-`md1img.img` + `md1dsp.img` in stock vendor partition. Required for 4G
-cellular. Skipped in current AETHER 6.6 (no ECCCI port yet).
+`md1img.img` + `md1dsp.img` in stock firmware. Required for 4G cellular.
+AETHER 6.6 packages ECCCI/CCCI/DPMAIF kernel modules, but SIM/calls/data/VoLTE
+still need physical RMX3171 RIL/IMS validation.
 
 ## Mali GPU firmware
 

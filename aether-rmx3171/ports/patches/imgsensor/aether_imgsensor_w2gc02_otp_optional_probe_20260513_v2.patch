@@ -1,0 +1,23 @@
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.c b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.c
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.c
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/common/v1_1/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.c
+@@ -39,7 +39,9 @@
+ 
+ #define MULTI_WRITE 1
+ #define IBURST_ENABLE 0
++#ifndef OTP_PORTING
+ #define OTP_PORTING 1
++#endif
+ 
+ #define LOG_INF(format, args...)    pr_debug(PFX "[%s] " format, __func__, ##args)
+ 
+diff --git a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+--- a/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
++++ b/device-modules/drivers/misc/mediatek/imgsensor/src/isp3_m/Makefile
+@@ -89,6 +89,7 @@ ifneq (,$(filter w2gc02m1depsj_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
+ endif
+ ifneq (,$(filter w2gc02m1microcxt_mipi_raw,$(CUSTOM_KERNEL_KNOWN_DRV)))
+ $(eval $(MTK_PLATFORM_KO)-objs += ../common/$(COMMON_VERSION)/w2gc02m1microcxt_mipi_raw/w2gc02m1microcxt_mipi_raw_Sensor.o)
++subdir-ccflags-y += -DOTP_PORTING=0
+ endif
+ endif

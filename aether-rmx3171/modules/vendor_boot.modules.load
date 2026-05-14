@@ -1,49 +1,13 @@
-# AETHER RMX3171 — vendor_boot.modules.load
-#
-# Modules loaded by first-stage init (in ramdisk) before /vendor mount.
-# Order matters: dependencies must be listed first.
-#
-# Strategy: minimize this list. Anything that can wait for vendor mount goes
-# to vendor_dlkm.modules.load. Boot-critical only:
-#   - storage / eMMC
-#   - console / UART
-#   - clock / pinctrl / regulator (MT6358 PMIC family)
-#   - early SCP firmware loader (sensor hub init)
-#   - watchdog / reset
-#
-# Evidence: hardware truth §10 (eMMC), §7 (PMIC), §9 (SCP).
-
-# --- early platform clk / pinctrl / regulator ---
-clk_mt6768.ko
-pinctrl_mt6768.ko
-mt6358-regulator.ko
-
-# --- main PMIC (MT6358) ---
-mt6358-core.ko
-mt6358-irq.ko
-mt6358-keys.ko
-
-# --- eMMC controller (first-stage mount) ---
-mtk-emi.ko
-msdc.ko
-mmc_block.ko
-
-# --- watchdog (must arm before late init) ---
-mtk_wdt.ko
-
-# --- IOMMU (DMA-coherent peripherals need this early) ---
-mtk_iommu.ko
-mtk_smi.ko
-
-# --- early thermal monitor (prevents thermal runaway during init) ---
-mtk_thermal_lvts.ko
-
-# --- TEE / KEY mgr (required for FBE/ICE on /userdata) ---
-mtk_geniezone.ko
-mtk_trusted_mem.ko
-
-# --- DMA-BUF heaps (A16 framework needs heap nodes by init time) ---
-mtk_dma_buf_heap.ko
-
-# --- early console UART ---
-mtk_serial.ko
+# AETHER RMX3171 first-stage / visible-hardware modules.
+# Every entry below is build-proven by out/modules.order.
+mt6370.ko
+tcpci_rt1711h.ko
+phy-generic.ko
+snd-soc-mt6358.ko
+panel-ilt9881h-rmx3171.ko
+aether-simple-gauge.ko
+sia81xx-aether.ko
+nt36525b-rmx3171.ko
+goodix-fp-rmx3171.ko
+mt6370-pe-rmx3171.ko
+fm-mt6631-aether.ko

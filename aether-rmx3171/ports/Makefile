@@ -13,5 +13,6 @@ obj-$(CONFIG_AETHER_TOUCHSCREEN_NT36525B)   += input/nt36525b-rmx3171.o
 obj-$(CONFIG_AETHER_GOODIX_FP)              += misc/goodix-fp-rmx3171.o
 obj-$(CONFIG_AETHER_MT6370_PE)              += power/mt6370-pe-rmx3171.o
 obj-$(CONFIG_AETHER_FM_MT6631)              += connectivity/fm-mt6631-aether.o
+obj-$(CONFIG_AETHER_MTK_MRDUMP_STUB)        += compat/mtk-mrdump-stub.o
 
 ccflags-y += -I$(srctree)/drivers/pinctrl/mediatek

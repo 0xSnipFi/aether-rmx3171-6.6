@@ -1,5 +1,31 @@
 # What's MISSING for full RMX3171 A16 daily-driver — evidence-based
 
+> **2026-05-14 UPDATE - radio blob skip fixed:** The source tree no longer
+> intentionally skips RMX3171 radio/RIL/IMS bring-up blobs. `md1img.img`,
+> `md1dsp.img`, APDB, `mtkfusionrild`, `libmtk-ril.so`, OPLUS radio/IMS
+> manifests/framework jars, and OppoSimSettings are listed or extracted by
+> `scripts/extract_blobs.sh`. This is still source-level readiness, not a
+> guarantee of SIM/call/LTE/VoLTE until physical RMX3171 radio logs confirm it.
+> See `docs/status/2026-05-14-radio-pgpt-source-readiness.md`.
+
+> **2026-05-13 v12 UPDATE - stock GPT correction:** RMX3171 production default
+> is now stock boot-header-v2, physical `boot` + `dtbo`, and logical
+> `vendor_dlkm` / `system_dlkm` inside custom super. Physical `vendor_boot`,
+> `init_boot`, and bootconfig partition are not stock RMX3171 assumptions.
+> `BoardConfigA16Legacy.mk` is the default. `BoardConfigA16.mk` is only for
+> explicit PGPT-remap / boot-header-v4 experiments.
+
+> **2026-05-13 v11 UPDATE — current source/build state:** P0 boot
+> packaging items are now implemented at source level (`dtbo.img`,
+> `system_dlkm`, `bootconfig`, KMI allowlist, AVB key override support).
+> v11 packages 128 modules and adds compile-proven, auto-loaded MTK ISP3 provider +
+> `imgsensor_isp3_m.ko` for OV13B10/S5K4H7/W2GC02 RMX3171-family sensors.
+> Panfrost is enabled for Mali-G52 kernel-side render-node support, and
+> ECCCI/CCCI/DPMAIF modem modules build/package. These are still
+> **not physical-device proofs**; display/touch/audio/charging/fingerprint,
+> camera preview, GPU userspace acceleration, SIM/calls/data and VoLTE need
+> RMX3171 boot logs before daily-driver wording is safe.
+
 > **2026-05-12 UPDATE — re-audit corrections:** Several "infeasible"
 > claims below have been **REVISED — see `PRODUCTION_ROADMAP.md`**. Quick
 > corrections:
@@ -246,22 +272,26 @@ build doesn't gate kernel, safe to iterate.
 
 ---
 
-### P2.5 — Cellular modem (ECCCI) absent ⚠ (FEASIBLE — corrected)
+### P2.5 — Cellular modem (ECCCI) buildproof, not validated ⚠
 
-**Evidence (corrected):**
+**Evidence (updated 2026-05-12):**
 - 4.14 `drivers/misc/mediatek/eccci/`: **2.1 MB, 54 .c files** (~12 K LoC,
   was earlier estimated 80K — wrong)
-- Samsung device-modules already has partial port:
-  `device-modules/drivers/misc/mediatek/ccci_util/` (5 files, 6.6-ready)
+- Samsung 6.6 device-modules contain usable ECCCI/CCMNI/RPS sources.
+- `v6-modem-buildproof` builds and packages 10 modem modules:
+  `rps_perf`, `ccci_util_lib`, `ccmni`, `ccci_auxadc`, `ccci_fsm_scp`,
+  `ccci_ccif`, `ccci_dpmaif`, `ccci_cldma`, `ccci_md_all`, `cpif`.
 - Modem firmware (md1img.img + md1dsp.img) extractable from stock vendor.
 
-**Impact:** No cellular calls or mobile data until ported.
+**Impact:** Kernel module compile/package blocker is cleared, but cellular
+calls/data are still not claimed working until device-side modem boot succeeds.
 
-**Fix paths** (see `PRODUCTION_ROADMAP.md` Phase 9):
-  - Port ECCCI framework (~60 h) + integrate signed modem .img blobs (~16 h)
-    + link vendor RIL HAL (~24 h) + APN/SIM/VoLTE (~24 h) + test (~16 h).
-  - **Total ~140 h** (~4 weeks solo).
-  - **Hardest realistic path** in the roadmap — leave for phase 9 of 10.
+**Remaining fix path:**
+  - Add/verify RMX3171 modem reserved-memory + CLDMA/CCIF/DPMAIF DTS nodes.
+  - Stage `md1img.img`, `md1dsp.img`, modem database, and NVRAM blobs.
+  - Verify `/dev/ccci*`, `/dev/ttyC*`, and `ccmni*` creation on device.
+  - Wire radio HAL/init/sepolicy and test SIM registration, calls, LTE data,
+    and VoLTE/IMS.
 
 ---
 
@@ -343,17 +373,18 @@ Stock vendor needs:
 - `BT_RAM_CODE_MT6768.bin` (or similar)
 - `GPS_FW_MT6768.bin`
 - `mt6358-firmware.bin` (audio DSP)
-- Modem images (md1img.img, md1dsp.img — irrelevant since no cellular)
+- Modem images (`md1img.img`, `md1dsp.img`) for ECCCI/RIL bring-up
 
 **Fix:** Add extraction script `scripts/extract_blobs.sh` pulling from
 mounted stock vendor.img. Document in `docs/VENDOR_BLOBS.md`.
 
 ### U.3 — RIL / radio HAL stubs ❌
 
-No `android.hardware.radio@*` in `device.mk`. Cellular wouldn't work even
-with modem driver.
+Radio HAL blobs/manifests exist in the vendor tree, but they still need device
+validation against the newly packaged ECCCI modules.
 
-**Fix:** Won't fix (no modem driver anyway).
+**Fix:** verify `mtkfusionrild`, radio HAL services, `/dev/ccci*`
+permissions, and sepolicy on a physical RMX3171 boot.
 
 ### U.4 — Sensor calibration data not extracted ⚠️
 
@@ -402,6 +433,7 @@ missing sia81xx PA enable in speaker path (since driver isn't ported).
 
 That's **9 items**, ~2 weeks engineering + 2 weeks device-test iteration.
 
-**WiFi + BT + KernelSU + NetHunter base is already working** (149 modules in v4).
+**WiFi + BT + KernelSU + NetHunter base has build support.**
 
-**Cellular + camera + 3D GPU = accept as missing** for indefinite future.
+**Cellular kernel modules now build/package; camera full ISP and 3D GPU remain
+the two largest unsolved hardware blocks.**
